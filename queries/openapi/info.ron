@@ -1,0 +1,10 @@
+InputQuery (
+    query: r#"
+{
+    Info {
+        title @output
+        version @output
+    }
+}"#,
+    args: {},
+)

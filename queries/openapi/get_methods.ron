@@ -1,0 +1,13 @@
+InputQuery (
+    query: r#"
+{
+    Paths {
+            path @output
+            post {
+                summary @filter(op: "is_not_null")
+            }
+        
+    }
+}"#,
+    args: {},
+)
