@@ -1,3 +1,4 @@
+use linter::{hn_main, oa_main};
 use simplelog::{
     debug, info, warn, Color, ColorChoice, Config, ConfigBuilder, Level, LevelFilter, TermLogger,
     TerminalMode,
@@ -20,4 +21,7 @@ fn main() {
         ColorChoice::Auto,
     )
     .unwrap();
+
+    // hn_main::main();
+    oa_main::main();
 }
