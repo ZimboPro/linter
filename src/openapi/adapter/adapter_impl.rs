@@ -1,0 +1,201 @@
+use std::{
+    path::PathBuf,
+    sync::{Arc, OnceLock},
+};
+
+use trustfall::{
+    provider::{
+        resolve_coercion_using_schema, resolve_property_with, AsVertex, ContextIterator,
+        ContextOutcomeIterator, EdgeParameters, ResolveEdgeInfo, ResolveInfo, Typename,
+        VertexIterator,
+    },
+    FieldValue, Schema,
+};
+
+use super::{
+    utils::{find_files, merge, open_file},
+    vertex::Vertex,
+};
+
+static SCHEMA: OnceLock<Schema> = OnceLock::new();
+
+#[non_exhaustive]
+#[derive(Debug)]
+pub struct Adapter {
+    openapi: openapiv3::OpenAPI,
+}
+
+impl Adapter {
+    pub const SCHEMA_TEXT: &'static str = include_str!("./schema.graphql");
+
+    pub fn schema() -> &'static Schema {
+        SCHEMA.get_or_init(|| Schema::parse(Self::SCHEMA_TEXT).expect("not a valid schema"))
+    }
+
+    pub fn new(path: PathBuf) -> Self {
+        let openapi = if path.is_dir() {
+            let mut files = find_files(&path, "yaml".as_ref());
+            files.extend(find_files(&path, "yml".as_ref()));
+            let mut files_content = Vec::new();
+            for file in files {
+                files_content.push(open_file(file));
+            }
+            let merged_content = merge(files_content);
+            serde_yaml::from_str(&merged_content).unwrap()
+        } else if path.is_file() {
+            let file = std::fs::File::open(path).expect("failed to open file");
+            let reader = std::io::BufReader::new(file);
+            serde_yaml::from_reader(reader).expect("failed to parse OpenAPI file")
+        } else {
+            panic!("path is not a file or directory")
+        };
+
+        Self { openapi }
+    }
+
+    fn info(&self) -> Vertex {
+        Vertex::Info(self.openapi.info.clone())
+    }
+
+    fn path(&self, path: &str) -> Vertex {
+        Vertex::Path((
+            path.to_string(),
+            self.openapi
+                .paths
+                .paths
+                .get(path)
+                .expect("path not found")
+                .clone(),
+        ))
+    }
+
+    fn paths(&self) -> Vertex {
+        Vertex::Paths(self.openapi.paths.clone().into_iter().collect())
+    }
+
+    fn tags(&self) -> Vertex {
+        Vertex::Tags(self.openapi.tags.clone())
+    }
+}
+
+impl<'a> trustfall::provider::Adapter<'a> for Adapter {
+    type Vertex = Vertex;
+
+    fn resolve_starting_vertices(
+        &self,
+        edge_name: &Arc<str>,
+        parameters: &EdgeParameters,
+        resolve_info: &ResolveInfo,
+    ) -> VertexIterator<'a, Self::Vertex> {
+        match edge_name.as_ref() {
+            "Info" => Box::new(std::iter::once(self.info())),
+            "Path" => {
+                let path: &str = parameters
+                    .get("path")
+                    .expect(
+                        "failed to find parameter 'path' when resolving 'Path' starting vertices",
+                    )
+                    .as_str()
+                    .expect(
+                        "unexpected null or other incorrect datatype for Trustfall type 'String!'",
+                    );
+                // super::entrypoints::path(path, resolve_info, &self.openapi)
+                Box::new(std::iter::once(self.path(path)))
+            }
+            // "Paths" => super::entrypoints::paths(resolve_info, &self.openapi),
+            "Paths" => Box::new(std::iter::once(self.paths())),
+            // "Tags" => super::entrypoints::tags(resolve_info, &self.openapi),
+            "Tags" => Box::new(std::iter::once(self.tags())),
+            _ => {
+                unreachable!(
+                    "attempted to resolve starting vertices for unexpected edge name: {edge_name}"
+                )
+            }
+        }
+    }
+
+    fn resolve_property<V: AsVertex<Self::Vertex> + 'a>(
+        &self,
+        contexts: ContextIterator<'a, V>,
+        type_name: &Arc<str>,
+        property_name: &Arc<str>,
+        resolve_info: &ResolveInfo,
+    ) -> ContextOutcomeIterator<'a, V, FieldValue> {
+        if property_name.as_ref() == "__typename" {
+            return resolve_property_with(contexts, |vertex| vertex.typename().into());
+        }
+        match type_name.as_ref() {
+            "AmazonApigatewayIntegration" => {
+                super::properties::resolve_amazon_apigateway_integration_property(
+                    contexts,
+                    property_name.as_ref(),
+                    resolve_info,
+                )
+            }
+            "Info" => super::properties::resolve_info_property(
+                contexts,
+                property_name.as_ref(),
+                resolve_info,
+            ),
+            "Operation" => super::properties::resolve_operation_property(
+                contexts,
+                property_name.as_ref(),
+                resolve_info,
+            ),
+            "Path" => super::properties::resolve_path_property(
+                contexts,
+                property_name.as_ref(),
+                resolve_info,
+            ),
+            "Tag" => super::properties::resolve_tag_property(
+                contexts,
+                property_name.as_ref(),
+                resolve_info,
+            ),
+            _ => {
+                unreachable!(
+                    "attempted to read property '{property_name}' on unexpected type: {type_name}"
+                )
+            }
+        }
+    }
+
+    fn resolve_neighbors<V: AsVertex<Self::Vertex> + 'a>(
+        &self,
+        contexts: ContextIterator<'a, V>,
+        type_name: &Arc<str>,
+        edge_name: &Arc<str>,
+        parameters: &EdgeParameters,
+        resolve_info: &ResolveEdgeInfo,
+    ) -> ContextOutcomeIterator<'a, V, VertexIterator<'a, Self::Vertex>> {
+        match type_name.as_ref() {
+            "Operation" => super::edges::resolve_operation_edge(
+                contexts,
+                edge_name.as_ref(),
+                parameters,
+                resolve_info,
+            ),
+            "Path" => super::edges::resolve_path_edge(
+                contexts,
+                edge_name.as_ref(),
+                parameters,
+                resolve_info,
+            ),
+            _ => {
+                unreachable!(
+                    "attempted to resolve edge '{edge_name}' on unexpected type: {type_name}"
+                )
+            }
+        }
+    }
+
+    fn resolve_coercion<V: AsVertex<Self::Vertex> + 'a>(
+        &self,
+        contexts: ContextIterator<'a, V>,
+        _type_name: &Arc<str>,
+        coerce_to_type: &Arc<str>,
+        _resolve_info: &ResolveInfo,
+    ) -> ContextOutcomeIterator<'a, V, bool> {
+        resolve_coercion_using_schema(contexts, Self::schema(), coerce_to_type.as_ref())
+    }
+}

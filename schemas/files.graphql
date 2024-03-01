@@ -1,0 +1,69 @@
+schema {
+    query: RootSchemaQuery
+}
+
+type RootSchemaQuery {
+    Path(path: String!): Path!
+}
+
+interface Path {
+    path: String!
+
+}
+
+type Folder implements Path {
+    path: String!
+    children: [Path!]
+}
+
+type LocalGitRepository implements Folder & Path {
+    path: String!
+    children: [Path!]
+    branches: [Branch!]
+    remotes: [Remote]
+}
+
+type Branch {
+   name: String!
+}
+
+type Remote {
+   name: String!
+   url: String
+}
+
+interface File implements Path {
+    path: String!
+    size: Int!
+    extension: String!
+}
+
+type Textfile implements File & Path {
+    path: String!
+    size: Int!
+    extension: String!
+    text: String!
+}
+
+type Imagefile implements File & Path {
+    path: String!
+    size: Int!
+    extension: String!
+    height: Int!
+    model: String
+}
+
+type PdfFile implements File & Path {
+    path: String!
+    size: Int!
+    extension: String!
+    text: String
+    n_pages: Int
+    pages: [PdfPage]
+}
+
+type PdfPage {
+   page_number: Int!
+   page_name: String!
+   text: String
+}
