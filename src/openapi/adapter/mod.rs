@@ -8,5 +8,5 @@ mod vertex;
 mod tests;
 mod utils;
 
-pub use adapter_impl::Adapter;
+pub use adapter_impl::OpenApiAdapter;
 pub use vertex::Vertex;

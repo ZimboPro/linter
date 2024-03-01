@@ -13,7 +13,7 @@ use trustfall::{
 };
 
 use super::{
-    utils::{find_files, merge, open_file},
+    utils::{find_files, merge, open_file, Route},
     vertex::Vertex,
 };
 
@@ -21,11 +21,11 @@ static SCHEMA: OnceLock<Schema> = OnceLock::new();
 
 #[non_exhaustive]
 #[derive(Debug)]
-pub struct Adapter {
+pub struct OpenApiAdapter {
     openapi: openapiv3::OpenAPI,
 }
 
-impl Adapter {
+impl OpenApiAdapter {
     pub const SCHEMA_TEXT: &'static str = include_str!("./schema.graphql");
 
     pub fn schema() -> &'static Schema {
@@ -58,19 +58,25 @@ impl Adapter {
     }
 
     fn path(&self, path: &str) -> Vertex {
-        Vertex::Path((
-            path.to_string(),
-            self.openapi
-                .paths
-                .paths
-                .get(path)
-                .expect("path not found")
-                .clone(),
-        ))
+        let mut route: Route = self
+            .openapi
+            .paths
+            .paths
+            .get(path)
+            .expect("path not found")
+            .clone()
+            .into();
+        route.path = path.clone().to_string();
+        Vertex::Path(route)
     }
 
-    fn paths(&self) -> Vertex {
-        Vertex::Paths(self.openapi.paths.clone().into_iter().collect())
+    fn paths<'a>(&self) -> VertexIterator<'a, Vertex> {
+        let iter = self.openapi.paths.clone().into_iter().filter_map(|x| {
+            let mut route: Route = x.1.into();
+            route.path = x.0.clone().to_string();
+            Some(Vertex::Path(route))
+        });
+        Box::new(iter)
     }
 
     fn tags(&self) -> Vertex {
@@ -78,7 +84,7 @@ impl Adapter {
     }
 }
 
-impl<'a> trustfall::provider::Adapter<'a> for Adapter {
+impl<'a> trustfall::provider::Adapter<'a> for OpenApiAdapter {
     type Vertex = Vertex;
 
     fn resolve_starting_vertices(
@@ -103,7 +109,7 @@ impl<'a> trustfall::provider::Adapter<'a> for Adapter {
                 Box::new(std::iter::once(self.path(path)))
             }
             // "Paths" => super::entrypoints::paths(resolve_info, &self.openapi),
-            "Paths" => Box::new(std::iter::once(self.paths())),
+            "Paths" => self.paths(),
             // "Tags" => super::entrypoints::tags(resolve_info, &self.openapi),
             "Tags" => Box::new(std::iter::once(self.tags())),
             _ => {

@@ -1,4 +1,6 @@
 use merge_yaml_hash::MergeYamlHash;
+use openapiv3::{Operation, PathItem};
+use serde::{Deserialize, Serialize};
 use simplelog::{debug, error, info, warn};
 use std::{ffi::OsStr, io::Read, path::PathBuf};
 
@@ -38,6 +40,37 @@ pub fn merge(files: Vec<String>) -> String {
     hash.to_string()
 }
 
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct Route {
+    pub path: String,
+    pub get: Option<Operator>,
+    pub post: Option<Operator>,
+    pub put: Option<Operator>,
+    pub delete: Option<Operator>,
+    pub patch: Option<Operator>,
+    pub options: Option<Operator>,
+}
+
+impl From<openapiv3::ReferenceOr<PathItem>> for Route {
+    fn from(value: openapiv3::ReferenceOr<PathItem>) -> Self {
+        match value {
+            openapiv3::ReferenceOr::Reference { reference } => todo!("Implement reference path"),
+            openapiv3::ReferenceOr::Item(item) => Self {
+                path: "".to_string(),
+                get: item.get.map(|x| Operator::from_operation(&x, "GET")),
+                post: item.post.map(|x| Operator::from_operation(&x, "POST")),
+                put: item.put.map(|x| Operator::from_operation(&x, "PUT")),
+                delete: item.delete.map(|x| Operator::from_operation(&x, "DELETE")),
+                patch: item.patch.map(|x| Operator::from_operation(&x, "PATCH")),
+                options: item
+                    .options
+                    .map(|x| Operator::from_operation(&x, "OPTIONS")),
+            },
+        }
+    }
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Operator {
     pub method: String,
     pub summary: Option<String>,
@@ -46,12 +79,37 @@ pub struct Operator {
     pub aws: Option<AmazonApigatewayIntegration>,
 }
 
+impl Operator {
+    pub fn from_operation(operation: &Operation, method: &str) -> Self {
+        Self {
+            method: method.to_string(),
+            summary: operation.summary.clone(),
+            description: operation.description.clone(),
+            tags: operation.tags.clone(),
+            aws: match operation.extensions.get("x-amazon-apigateway-integration") {
+                Some(value) => {
+                    match serde_json::from_value::<AmazonApigatewayIntegration>(value.clone()) {
+                        Ok(s) => Some(s),
+                        Err(e) => {
+                            eprintln!("Failed to deserialize to AWS extension: {e} {value}");
+                            None
+                        }
+                    }
+                }
+                None => None,
+            },
+        }
+    }
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct AmazonApigatewayIntegration {
-    r_type: String,
-    http_method: String,
-    uri: String,
-    pass_through_behavior: String,
-    timeout_in_millis: usize,
-    trigger: String,
-    arn: String,
+    #[serde(rename = "type")]
+    pub r_type: String,
+    pub http_method: String,
+    pub uri: String,
+    pub pass_through_behavior: String,
+    pub timeout_in_millis: usize,
+    pub trigger: String,
+    pub arn: String,
 }

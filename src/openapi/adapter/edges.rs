@@ -22,10 +22,13 @@ pub(super) fn resolve_operation_edge<'a, V: AsVertex<Vertex> + 'a>(
 }
 
 mod operation {
+    use openapiv3::Operation;
     use trustfall::provider::{
         resolve_neighbors_with, AsVertex, ContextIterator, ContextOutcomeIterator, ResolveEdgeInfo,
         VertexIterator,
     };
+
+    use crate::openapi::adapter::utils::{AmazonApigatewayIntegration, Operator};
 
     use super::super::vertex::Vertex;
 
@@ -34,10 +37,16 @@ mod operation {
         _resolve_info: &ResolveEdgeInfo,
     ) -> ContextOutcomeIterator<'a, V, VertexIterator<'a, Vertex>> {
         resolve_neighbors_with(contexts, move |vertex| {
-            let vertex = vertex
+            let operation: &Operator = vertex
                 .as_operation()
                 .expect("conversion failed, vertex was not a Operation");
-            todo!("get neighbors along edge 'xAmazonApigatewayIntegration' for type 'Operation'")
+
+            match &operation.aws {
+                Some(value) => Box::new(std::iter::once(Vertex::AmazonApigatewayIntegration(
+                    value.clone(),
+                ))),
+                None => Box::new(std::iter::empty()),
+            }
         })
     }
 }
@@ -62,10 +71,13 @@ pub(super) fn resolve_path_edge<'a, V: AsVertex<Vertex> + 'a>(
 }
 
 mod path {
+    use openapiv3::{PathItem, ReferenceOr};
     use trustfall::provider::{
         resolve_neighbors_with, AsVertex, ContextIterator, ContextOutcomeIterator, ResolveEdgeInfo,
         VertexIterator,
     };
+
+    use crate::openapi::adapter::utils::{Operator, Route};
 
     use super::super::vertex::Vertex;
 
@@ -74,10 +86,14 @@ mod path {
         _resolve_info: &ResolveEdgeInfo,
     ) -> ContextOutcomeIterator<'a, V, VertexIterator<'a, Vertex>> {
         resolve_neighbors_with(contexts, move |vertex| {
-            let vertex = vertex
+            let route: &Route = vertex
                 .as_path()
                 .expect("conversion failed, vertex was not a Path");
-            todo!("get neighbors along edge 'delete' for type 'Path'")
+
+            match &route.delete {
+                Some(op) => Box::new(std::iter::once(Vertex::Operation(op.clone()))),
+                None => Box::new(std::iter::empty()),
+            }
         })
     }
 
@@ -86,10 +102,14 @@ mod path {
         _resolve_info: &ResolveEdgeInfo,
     ) -> ContextOutcomeIterator<'a, V, VertexIterator<'a, Vertex>> {
         resolve_neighbors_with(contexts, move |vertex| {
-            let vertex = vertex
+            let route: &Route = vertex
                 .as_path()
                 .expect("conversion failed, vertex was not a Path");
-            todo!("get neighbors along edge 'get' for type 'Path'")
+
+            match &route.get {
+                Some(op) => Box::new(std::iter::once(Vertex::Operation(op.clone()))),
+                None => Box::new(std::iter::empty()),
+            }
         })
     }
 
@@ -98,10 +118,14 @@ mod path {
         _resolve_info: &ResolveEdgeInfo,
     ) -> ContextOutcomeIterator<'a, V, VertexIterator<'a, Vertex>> {
         resolve_neighbors_with(contexts, move |vertex| {
-            let vertex = vertex
+            let route: &Route = vertex
                 .as_path()
                 .expect("conversion failed, vertex was not a Path");
-            todo!("get neighbors along edge 'options' for type 'Path'")
+
+            match &route.options {
+                Some(op) => Box::new(std::iter::once(Vertex::Operation(op.clone()))),
+                None => Box::new(std::iter::empty()),
+            }
         })
     }
 
@@ -110,10 +134,14 @@ mod path {
         _resolve_info: &ResolveEdgeInfo,
     ) -> ContextOutcomeIterator<'a, V, VertexIterator<'a, Vertex>> {
         resolve_neighbors_with(contexts, move |vertex| {
-            let vertex = vertex
+            let route: &Route = vertex
                 .as_path()
                 .expect("conversion failed, vertex was not a Path");
-            todo!("get neighbors along edge 'patch' for type 'Path'")
+
+            match &route.patch {
+                Some(op) => Box::new(std::iter::once(Vertex::Operation(op.clone()))),
+                None => Box::new(std::iter::empty()),
+            }
         })
     }
 
@@ -122,10 +150,14 @@ mod path {
         _resolve_info: &ResolveEdgeInfo,
     ) -> ContextOutcomeIterator<'a, V, VertexIterator<'a, Vertex>> {
         resolve_neighbors_with(contexts, move |vertex| {
-            let vertex = vertex
+            let route: &Route = vertex
                 .as_path()
                 .expect("conversion failed, vertex was not a Path");
-            todo!("get neighbors along edge 'post' for type 'Path'")
+
+            match &route.post {
+                Some(op) => Box::new(std::iter::once(Vertex::Operation(op.clone()))),
+                None => Box::new(std::iter::empty()),
+            }
         })
     }
 
@@ -134,10 +166,14 @@ mod path {
         _resolve_info: &ResolveEdgeInfo,
     ) -> ContextOutcomeIterator<'a, V, VertexIterator<'a, Vertex>> {
         resolve_neighbors_with(contexts, move |vertex| {
-            let vertex = vertex
+            let route: &Route = vertex
                 .as_path()
                 .expect("conversion failed, vertex was not a Path");
-            todo!("get neighbors along edge 'put' for type 'Path'")
+
+            match &route.put {
+                Some(op) => Box::new(std::iter::once(Vertex::Operation(op.clone()))),
+                None => Box::new(std::iter::empty()),
+            }
         })
     }
 }

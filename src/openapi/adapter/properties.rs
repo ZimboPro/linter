@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use trustfall::{
     provider::{
         field_property, resolve_property_with, AsVertex, ContextIterator, ContextOutcomeIterator,
@@ -6,7 +8,7 @@ use trustfall::{
     FieldValue,
 };
 
-use super::vertex::Vertex;
+use super::vertex::{self, Vertex};
 
 pub(super) fn resolve_amazon_apigateway_integration_property<'a, V: AsVertex<Vertex> + 'a>(
     contexts: ContextIterator<'a, V>,
@@ -14,37 +16,35 @@ pub(super) fn resolve_amazon_apigateway_integration_property<'a, V: AsVertex<Ver
     _resolve_info: &ResolveInfo,
 ) -> ContextOutcomeIterator<'a, V, FieldValue> {
     match property_name {
-        "arn" => {
-            todo!(
-                "implement property 'arn' in fn `resolve_amazon_apigateway_integration_property()`"
-            )
-        }
-        "httpMethod" => resolve_property_with(contexts, field_property!(httpMethod)),
-        "passthroughBehavior" => {
-            todo!(
-                "implement property 'passthroughBehavior' in fn `resolve_amazon_apigateway_integration_property()`"
-            )
-        }
-        "timeoutInMillis" => {
-            todo!(
-                "implement property 'timeoutInMillis' in fn `resolve_amazon_apigateway_integration_property()`"
-            )
-        }
-        "trigger" => {
-            todo!(
-                "implement property 'trigger' in fn `resolve_amazon_apigateway_integration_property()`"
-            )
-        }
-        "type" => {
-            todo!(
-                "implement property 'type' in fn `resolve_amazon_apigateway_integration_property()`"
-            )
-        }
-        "uri" => {
-            todo!(
-                "implement property 'uri' in fn `resolve_amazon_apigateway_integration_property()`"
-            )
-        }
+        "arn" => resolve_property_with(
+            contexts,
+            field_property!(as_amazon_apigateway_integration, arn),
+        ),
+        "httpMethod" => resolve_property_with(
+            contexts,
+            field_property!(as_amazon_apigateway_integration, http_method),
+        ),
+        "passthroughBehavior" => resolve_property_with(
+            contexts,
+            field_property!(as_amazon_apigateway_integration, pass_through_behavior),
+        ),
+        "timeoutInMillis" => resolve_property_with(contexts, |vertex: &Vertex| {
+            let t = vertex.as_amazon_apigateway_integration().unwrap();
+
+            FieldValue::Uint64(t.timeout_in_millis as u64)
+        }),
+        "trigger" => resolve_property_with(
+            contexts,
+            field_property!(as_amazon_apigateway_integration, trigger),
+        ),
+        "type" => resolve_property_with(
+            contexts,
+            field_property!(as_amazon_apigateway_integration, r_type),
+        ),
+        "uri" => resolve_property_with(
+            contexts,
+            field_property!(as_amazon_apigateway_integration, uri),
+        ),
         _ => {
             unreachable!(
                 "attempted to read unexpected property '{property_name}' on type 'AmazonApigatewayIntegration'"
@@ -59,10 +59,7 @@ pub(super) fn resolve_info_property<'a, V: AsVertex<Vertex> + 'a>(
     _resolve_info: &ResolveInfo,
 ) -> ContextOutcomeIterator<'a, V, FieldValue> {
     match property_name {
-        "description" => {
-            resolve_property_with(contexts, field_property!(as_info, description))
-            // todo!("implement property 'description' in fn `resolve_info_property()`")
-        }
+        "description" => resolve_property_with(contexts, field_property!(as_info, description)),
         "title" => resolve_property_with(contexts, field_property!(as_info, title)),
         "version" => resolve_property_with(contexts, field_property!(as_info, version)),
         _ => {
@@ -79,12 +76,8 @@ pub(super) fn resolve_operation_property<'a, V: AsVertex<Vertex> + 'a>(
     match property_name {
         "description" => {
             resolve_property_with(contexts, field_property!(as_operation, description))
-            // todo!("implement property 'description' in fn `resolve_operation_property()`")
         }
-        "summary" => {
-            resolve_property_with(contexts, field_property!(as_operation, summary))
-            // todo!("implement property 'summary' in fn `resolve_operation_property()`")
-        }
+        "summary" => resolve_property_with(contexts, field_property!(as_operation, summary)),
         "tags" => resolve_property_with(contexts, field_property!(as_operation, tags)),
         _ => {
             unreachable!(
@@ -100,7 +93,7 @@ pub(super) fn resolve_path_property<'a, V: AsVertex<Vertex> + 'a>(
     _resolve_info: &ResolveInfo,
 ) -> ContextOutcomeIterator<'a, V, FieldValue> {
     match property_name {
-        "path" => todo!("implement property 'path' in fn `resolve_path_property()`"),
+        "path" => resolve_property_with(contexts, field_property!(as_path, path)),
         _ => {
             unreachable!("attempted to read unexpected property '{property_name}' on type 'Path'")
         }
