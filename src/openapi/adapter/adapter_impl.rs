@@ -79,8 +79,15 @@ impl OpenApiAdapter {
         Box::new(iter)
     }
 
-    fn tags(&self) -> Vertex {
-        Vertex::Tags(self.openapi.tags.clone())
+    fn tags<'a>(&self) -> VertexIterator<'a, Vertex> {
+        let iter = self
+            .openapi
+            .tags
+            .clone()
+            .into_iter()
+            .filter_map(|x| Some(Vertex::Tag(x)));
+        Box::new(iter)
+        // Vertex::Tags(self.openapi.tags.clone())
     }
 }
 
@@ -111,7 +118,8 @@ impl<'a> trustfall::provider::Adapter<'a> for OpenApiAdapter {
             // "Paths" => super::entrypoints::paths(resolve_info, &self.openapi),
             "Paths" => self.paths(),
             // "Tags" => super::entrypoints::tags(resolve_info, &self.openapi),
-            "Tags" => Box::new(std::iter::once(self.tags())),
+            // "Tags" => Box::new(std::iter::once(self.tags())),
+            "Tags" => self.tags(),
             _ => {
                 unreachable!(
                     "attempted to resolve starting vertices for unexpected edge name: {edge_name}"
