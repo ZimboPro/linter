@@ -36,3 +36,33 @@ Query uses GraphQL
 ## TODOs
 
 - [ ] Add response to OpenAPI schema
+- [ ] Determine what to query in Terraform
+  - [ ] Terraform
+    - [ ] required version
+      - [ ] Map to semver struct?
+    - [ ] backend
+  - [ ] resource
+    - [ ] type
+    - [ ] name
+    - [ ] properties
+  - [ ] variable
+    - [ ] name
+    - [ ] type
+    - [ ] default
+    - [ ] description
+  - [ ] locals
+    - [ ] name
+    - [ ] value
+  - [ ] module
+    - [ ] name
+    - [ ] source
+    - [ ] properties
+    - [ ] lambda permissions
+      - [ ] endpoints
+  - [ ] provider
+    - [ ] provider name
+    - [ ] properties
+
+## Terraform
+
+Able
