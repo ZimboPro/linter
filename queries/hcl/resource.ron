@@ -1,0 +1,13 @@
+InputQuery (
+    query: r#"
+{
+    Resource {
+        aws_api_gateway_stage {
+            this {
+                stage_name @output
+            }
+        }
+    }
+}"#,
+    args: {},
+)
