@@ -1,0 +1,60 @@
+{
+  "resource": {
+    "aws_api_gateway_base_path_mapping": {
+      "this": {
+        "api_id": "${aws_api_gateway_rest_api.this.id}",
+        "domain_name": "${aws_api_gateway_domain_name.this.domain_name}",
+        "stage_name": "${aws_api_gateway_stage.this.stage_name}"
+      }
+    },
+    "aws_api_gateway_deployment": {
+      "this": {
+        "depends_on": [
+          "aws_api_gateway_integration.proxy_root",
+          "aws_api_gateway_integration.proxy_other"
+        ],
+        "rest_api_id": "${aws_api_gateway_rest_api.this.id}"
+      }
+    },
+    "aws_api_gateway_domain_name": {
+      "this": {
+        "domain_name": "${var.api_domain}",
+        "endpoint_configuration": {
+          "types": [
+            "REGIONAL"
+          ]
+        },
+        "regional_certificate_arn": "${aws_acm_certificate_validation.this.certificate_arn}"
+      }
+    },
+    "aws_api_gateway_method_settings": {
+      "this": {
+        "method_path": "*/*",
+        "rest_api_id": "${aws_api_gateway_rest_api.this.id}",
+        "settings": {
+          "data_trace_enabled": "${var.api_gateway_logging_level == \"OFF\" ? false : true}",
+          "logging_level": "${var.api_gateway_logging_level}",
+          "metrics_enabled": "${var.api_gateway_cloudwatch_metrics}",
+          "throttling_burst_limit": "${var.throttling_burst_limit}",
+          "throttling_rate_limit": "${var.throttling_rate_limit}"
+        },
+        "stage_name": "${aws_api_gateway_stage.this.stage_name}"
+      }
+    },
+    "aws_api_gateway_rest_api": {
+      "this": {
+        "description": "${var.comment_prefix}${var.api_domain}",
+        "name": "${local.prefix_with_domain}"
+      }
+    },
+    "aws_api_gateway_stage": {
+      "this": {
+        "deployment_id": "${aws_api_gateway_deployment.this.id}",
+        "description": "${var.comment_prefix}${var.api_domain}",
+        "rest_api_id": "${aws_api_gateway_rest_api.this.id}",
+        "stage_name": "${var.stage_name}",
+        "tags": "${var.tags}"
+      }
+    }
+  }
+}

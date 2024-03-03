@@ -1,0 +1,34 @@
+{
+  "resource": {
+    "aws_iam_policy": {
+      "this": {
+        "count": "${var.lambda_logging_enabled ? 1 : 0}",
+        "name": "${local.prefix_with_domain}",
+        "policy": "{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Action\": [\n        \"logs:CreateLogGroup\",\n        \"logs:CreateLogStream\",\n        \"logs:PutLogEvents\"\n      ],\n      \"Resource\": \"arn:aws:logs:*:*:*\",\n      \"Effect\": \"Allow\"\n    }\n  ]\n}\n"
+      }
+    },
+    "aws_iam_role": {
+      "this": {
+        "assume_role_policy": "{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Effect\": \"Allow\",\n      \"Principal\": {\n        \"Service\": [\n          \"lambda.amazonaws.com\",\n          \"edgelambda.amazonaws.com\"\n        ]\n      },\n      \"Action\": \"sts:AssumeRole\"\n    }\n  ]\n}\n",
+        "name": "${local.prefix_with_domain}",
+        "tags": "${var.tags}"
+      }
+    },
+    "aws_iam_role_policy_attachment": {
+      "this": {
+        "count": "${var.lambda_logging_enabled ? 1 : 0}",
+        "policy_arn": "${aws_iam_policy.this.arn}",
+        "role": "${aws_iam_role.this.name}"
+      }
+    },
+    "aws_lambda_permission": {
+      "this": {
+        "action": "lambda:InvokeFunction",
+        "function_name": "${local.function_arn}",
+        "principal": "apigateway.amazonaws.com",
+        "source_arn": "${aws_api_gateway_stage.this.execution_arn}/*/*",
+        "statement_id": "AllowAPIGatewayInvoke"
+      }
+    }
+  }
+}
