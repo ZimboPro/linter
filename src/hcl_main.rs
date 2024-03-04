@@ -4,8 +4,7 @@ use serde::Deserialize;
 use trustfall::{execute_query, FieldValue, TransparentValue};
 
 use crate::{
-    hcl::adapter::JsonAdapter,
-    openapi::adapter::OpenApiAdapter,
+    hcl::adapter::HclAdapter,
     util::{self, find_files},
 };
 
@@ -20,17 +19,8 @@ fn run_query(path: &str, max_results: Option<usize>) {
     let content = util::read_file(path);
     let input_query: InputQuery = ron::from_str(&content).unwrap();
 
-    let files = find_files("test_files".into(), "tf");
-
-    let mut json_contents = Vec::new();
-    for file in files {
-        let contents = std::fs::read_to_string(&file).unwrap();
-        let value: serde_json::Value = hcl::from_str(&contents).unwrap();
-        json_contents.push(value);
-    }
-    println!("Len {}", json_contents.len());
-    let adapter = Arc::new(JsonAdapter::new(json_contents));
-    let schema = JsonAdapter::schema();
+    let adapter = Arc::new(HclAdapter::new("test_files".into()));
+    let schema = HclAdapter::schema();
 
     let query = input_query.query;
     let variables = input_query.args;

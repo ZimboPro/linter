@@ -43,7 +43,8 @@ type RootSchemaQuery {
   Modules: [Module!]!
   ApiConfig: ApiConfig
   Lambda: [Lambda!]
-  Module(name: String!, tag: String): [Module]
+  Module(name: String!, tag: String): [Module],
+  Terraform: [Terraform!]!
 }
 
 type Module {
