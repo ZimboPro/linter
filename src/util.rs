@@ -4,6 +4,8 @@ use std::{
     path::{Components, PathBuf},
 };
 
+use trustfall::FieldValue;
+
 /// Pop path components from the front of the path component iterator, then try the read again.
 fn path_compensating_read(mut iter: Components<'_>, tries_remaining: i64) -> Result<String, ()> {
     match iter.next() {
@@ -49,4 +51,40 @@ pub fn find_files(path: PathBuf, extension: &str) -> Vec<PathBuf> {
         }
     }
     files
+}
+
+pub fn find_files_ignore_dir(path: PathBuf, extension: &str, folder: &str) -> Vec<PathBuf> {
+    let mut files = Vec::new();
+    for entries in path.read_dir().expect("Failed to get dir contents") {
+        if let Ok(entry) = entries {
+            if entry.path().is_dir() && !entry.path().ends_with(folder) {
+                files.extend(find_files(entry.path(), extension));
+            } else if entry.path().is_file()
+                && entry.path().extension() == Some(OsStr::new(extension))
+            {
+                files.push(entry.path().clone());
+            }
+        }
+    }
+    files
+}
+
+pub fn from_field_value(value: &FieldValue) -> serde_json::Value {
+    match value {
+        FieldValue::Null => serde_json::Value::Null,
+        FieldValue::Int64(val) => val.to_owned().into(),
+        FieldValue::Uint64(val) => val.to_owned().into(),
+        FieldValue::Float64(val) => val.to_owned().into(),
+        FieldValue::String(val) => val.to_string().into(),
+        FieldValue::Boolean(val) => val.to_owned().into(),
+        FieldValue::Enum(val) => val.to_string().into(),
+        FieldValue::List(val) => {
+            let mut list = serde_json::Value::Array(Vec::new());
+            for item in val.iter() {
+                list.as_array_mut().unwrap().push(from_field_value(item));
+            }
+            list
+        }
+        _ => todo!(),
+    }
 }

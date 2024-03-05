@@ -3,15 +3,15 @@ use std::path::PathBuf;
 use anyhow::anyhow;
 use simplelog::{debug, error};
 
-use crate::util::find_files;
+use crate::util::{find_files, find_files_ignore_dir};
 
 use super::model::{
     ApiConfig, Backend, Lambda, Module, RequiredProvider, TemplateVariable, Terraform, Variable,
     HCL,
 };
 
-pub fn extract_data_from_hcl(path: PathBuf) -> HCL {
-    let files = find_files(path, "tf");
+pub fn extract_data_from_hcl(path: &PathBuf) -> HCL {
+    let files = find_files_ignore_dir(path.clone(), "tf", ".terraform");
     let mut json = Vec::new();
     for file in files {
         let contents = std::fs::read_to_string(&file).unwrap();
@@ -31,10 +31,19 @@ fn extract_modules(json: &Vec<serde_json::Value>) -> Vec<Module> {
     for value in json {
         value.get("module").map(|x| match x {
             serde_json::Value::Object(s) => modules.extend(s.iter().map(|record| {
+                debug!("Record: {:#?}", record);
                 Module {
                     name: record.0.to_string(),
-                    source: record.1.get("source").unwrap().to_string(),
-                    version: record.1.get("version").unwrap().to_string(),
+                    source: record
+                        .1
+                        .get("source")
+                        .expect("Source should be set")
+                        .to_string(),
+                    version: record
+                        .1
+                        .get("version")
+                        .expect(format!("Version should be set: {}", record.0.to_string()).as_str())
+                        .to_string(),
                     variables: value
                         .as_object()
                         .unwrap()
@@ -171,12 +180,20 @@ fn extract_api_config(json: &Vec<serde_json::Value>, lambdas: Vec<Lambda>) -> Op
         x.get("module")
             .and_then(|service| service.get("service_api"))
     });
-    if let Some(d) = s {
-        let template_file = d.get("body").expect("body not found").to_string();
-        let sections: Vec<&str> = template_file.split('\"').collect();
+    let api_config = s.and_then(|x| x.get("api_config"));
+    if let Some(d) = api_config {
+        debug!("Api config: {:#?}", d);
+        let template_file = d.get("body").expect("body not found").as_str().unwrap();
+        debug!("Body: {}", template_file);
+        let sections: Vec<&str> = template_file.splitn(3, '\"').collect();
         let template_file = sections[1].to_string();
+        debug!("Template file: {}", template_file);
         let mut variables = sections[2].to_string();
+        variables = variables.replacen(",", "", 1);
         variables = variables.replace(")}", "");
+        variables = variables.replace("{", "");
+        variables = variables.replace("}", "");
+        debug!("Variables: {}", variables);
         let template_variables: Vec<TemplateVariable> = variables
             .split(',')
             .map(|x| {
@@ -200,9 +217,10 @@ fn extract_api_config(json: &Vec<serde_json::Value>, lambdas: Vec<Lambda>) -> Op
                 }
             })
             .collect();
+        debug!("Config {:#?}", d);
         Some(ApiConfig {
-            source: d.get("source").unwrap().to_string(),
-            version: d.get("version").unwrap().to_string(),
+            source: s?.get("source").unwrap().to_string(),
+            version: s?.get("version").unwrap().to_string(),
             template_file,
             template_variables,
         })

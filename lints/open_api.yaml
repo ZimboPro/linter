@@ -1,0 +1,11 @@
+lints:
+  - name: Get Tags
+    description: All GET API endpoints should have tags
+    error: "GET API endpoints should have tags"
+    api: |
+      Paths {
+        path @output
+          get {
+            tags @filter(op: "is_not_null")
+          }
+      }

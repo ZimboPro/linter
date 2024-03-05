@@ -54,7 +54,7 @@ pub struct Route {
 impl From<openapiv3::ReferenceOr<PathItem>> for Route {
     fn from(value: openapiv3::ReferenceOr<PathItem>) -> Self {
         match value {
-            openapiv3::ReferenceOr::Reference { reference } => todo!("Implement reference path"),
+            openapiv3::ReferenceOr::Reference { reference: _ } => todo!("Implement reference path"),
             openapiv3::ReferenceOr::Item(item) => Self {
                 path: "".to_string(),
                 get: item.get.map(|x| Operator::from_operation(&x, "GET")),
@@ -75,7 +75,7 @@ pub struct Operator {
     pub method: String,
     pub summary: Option<String>,
     pub description: Option<String>,
-    pub tags: Vec<String>,
+    pub tags: Option<Vec<String>>,
     pub aws: Option<AmazonApigatewayIntegration>,
 }
 
@@ -85,11 +85,19 @@ impl Operator {
             method: method.to_string(),
             summary: operation.summary.clone(),
             description: operation.description.clone(),
-            tags: operation.tags.clone(),
+            tags: if operation.tags.is_empty() {
+                None
+            } else {
+                Some(operation.tags.clone())
+            },
             aws: match operation.extensions.get("x-amazon-apigateway-integration") {
                 Some(value) => {
                     match serde_json::from_value::<AmazonApigatewayIntegration>(value.clone()) {
-                        Ok(s) => Some(s),
+                        Ok(mut s) => {
+                            s.extract_supplementary_data();
+                            debug!("AWS extension: {:#?}", s);
+                            Some(s)
+                        }
                         Err(e) => {
                             eprintln!("Failed to deserialize to AWS extension: {e} {value}");
                             None
@@ -103,13 +111,33 @@ impl Operator {
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct AmazonApigatewayIntegration {
     #[serde(rename = "type")]
     pub r_type: String,
     pub http_method: String,
     pub uri: String,
+    #[serde(rename = "passthroughBehavior")]
     pub pass_through_behavior: String,
     pub timeout_in_millis: usize,
+    #[serde(skip)]
     pub trigger: String,
+    #[serde(skip)]
     pub arn: String,
+}
+
+impl AmazonApigatewayIntegration {
+    pub fn extract_supplementary_data(&mut self) {
+        let splits: Vec<&str> = self.uri.split(':').collect();
+        let trigger_type = match splits[4] {
+            "lambda" => {
+                let x = splits.last().unwrap().split_once("{").unwrap();
+                self.arn = x.1.split_once("}").unwrap().0.to_string();
+                "Lambda"
+            }
+            "state" => "Step Function",
+            x => x,
+        };
+        self.trigger = format!("{} -> {}", splits[2], trigger_type);
+    }
 }

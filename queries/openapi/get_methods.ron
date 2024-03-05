@@ -4,7 +4,7 @@ InputQuery (
     Paths {
             path @output
             post {
-                summary @filter(op: "is_not_null")
+                tags @filter(op: "is_null")
             }
         
     }

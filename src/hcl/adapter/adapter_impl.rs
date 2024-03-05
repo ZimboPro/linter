@@ -33,7 +33,7 @@ impl HclAdapter {
         SCHEMA.get_or_init(|| Schema::parse(Self::SCHEMA_TEXT).expect("not a valid schema"))
     }
 
-    pub fn new(path: PathBuf) -> Self {
+    pub fn new(path: &PathBuf) -> Self {
         Self {
             data: extract_data_from_hcl(path),
         }

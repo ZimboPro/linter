@@ -3,7 +3,10 @@ use std::{collections::BTreeMap, env, process, sync::Arc};
 use serde::Deserialize;
 use trustfall::{execute_query, FieldValue, TransparentValue};
 
-use crate::{openapi::adapter::OpenApiAdapter, util};
+use crate::{
+    openapi::adapter::OpenApiAdapter,
+    util::{self, from_field_value},
+};
 
 #[derive(Debug, Clone, Deserialize)]
 struct InputQuery<'a> {
@@ -17,7 +20,7 @@ fn run_query(path: &str, max_results: Option<usize>) {
     let input_query: InputQuery = ron::from_str(&content).unwrap();
 
     let adapter = Arc::new(OpenApiAdapter::new(
-        "test_files/openapi/pet_store.yaml".into(),
+        "test_files/openapi/pet_store_extended.yaml".into(),
     ));
     let schema = OpenApiAdapter::schema();
 
@@ -33,8 +36,12 @@ fn run_query(path: &str, max_results: Option<usize>) {
         //
         // The `TransparentValue` type is like `FieldValue` minus the explicit type representation,
         // so it's more like what we'd expect to normally find in JSON.
-        let transparent: BTreeMap<_, TransparentValue> =
-            data_item.into_iter().map(|(k, v)| (k, v.into())).collect();
+        // let transparent: BTreeMap<_, TransparentValue> =
+        //     data_item.into_iter().map(|(k, v)| (k, v.into())).collect();
+        let transparent: serde_json::Value = data_item
+            .into_iter()
+            .map(|(k, v)| (k.to_string(), from_field_value(&v)))
+            .collect();
         println!("\n{}", serde_json::to_string_pretty(&transparent).unwrap());
     }
 }

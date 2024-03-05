@@ -1,6 +1,6 @@
-use std::{collections::BTreeMap, env, process, sync::Arc};
+use std::{collections::BTreeMap, env, path::PathBuf, process, sync::Arc};
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use trustfall::{execute_query, FieldValue, TransparentValue};
 
 use crate::{
@@ -19,7 +19,7 @@ fn run_query(path: &str, max_results: Option<usize>) {
     let content = util::read_file(path);
     let input_query: InputQuery = ron::from_str(&content).unwrap();
 
-    let adapter = Arc::new(HclAdapter::new("test_files".into()));
+    let adapter = Arc::new(HclAdapter::new(&PathBuf::from("test_files")));
     let schema = HclAdapter::schema();
 
     let query = input_query.query;
