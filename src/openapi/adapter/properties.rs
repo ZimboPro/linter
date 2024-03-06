@@ -28,8 +28,11 @@ pub(super) fn resolve_amazon_apigateway_integration_property<'a, V: AsVertex<Ver
         ),
         "timeoutInMillis" => resolve_property_with(contexts, |vertex: &Vertex| {
             let t = vertex.as_amazon_apigateway_integration().unwrap();
-
-            FieldValue::Uint64(t.timeout_in_millis as u64)
+            if let Some(timeout) = t.timeout_in_millis {
+                FieldValue::Uint64(timeout as u64)
+            } else {
+                FieldValue::Null
+            }
         }),
         "trigger" => resolve_property_with(
             contexts,

@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use serde::{Deserialize, Serialize};
 use simplelog::error;
 
@@ -32,6 +34,10 @@ pub struct Lint {
     pub terraform: Option<String>,
     pub api: Option<String>,
     pub error: String,
+    #[serde(default)]
+    pub tf_args: HashMap<String, String>,
+    #[serde(default)]
+    pub oa_args: HashMap<String, String>,
 }
 
 impl Lint {

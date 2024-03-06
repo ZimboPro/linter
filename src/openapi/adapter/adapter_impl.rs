@@ -3,6 +3,7 @@ use std::{
     sync::{Arc, OnceLock},
 };
 
+use simplelog::debug;
 use trustfall::{
     provider::{
         resolve_coercion_using_schema, resolve_property_with, AsVertex, ContextIterator,
@@ -47,7 +48,7 @@ impl OpenApiAdapter {
             let reader = std::io::BufReader::new(file);
             serde_yaml::from_reader(reader).expect("failed to parse OpenAPI file")
         } else {
-            panic!("path is not a file or directory")
+            panic!("Path: {:?} is not a file or directory", path)
         };
 
         Self { openapi }
@@ -74,6 +75,7 @@ impl OpenApiAdapter {
         let iter = self.openapi.paths.clone().into_iter().filter_map(|x| {
             let mut route: Route = x.1.into();
             route.path = x.0.clone().to_string();
+            debug!("Route: {:?}", route);
             Some(Vertex::Path(route))
         });
         Box::new(iter)

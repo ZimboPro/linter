@@ -99,7 +99,7 @@ type AmazonApigatewayIntegration {
     httpMethod: String!
     uri: String!
     passthroughBehavior: String!
-    timeoutInMillis: Int!
+    timeoutInMillis: Int
     trigger: String!
     arn: String
 }

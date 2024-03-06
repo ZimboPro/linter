@@ -119,7 +119,7 @@ pub struct AmazonApigatewayIntegration {
     pub uri: String,
     #[serde(rename = "passthroughBehavior")]
     pub pass_through_behavior: String,
-    pub timeout_in_millis: usize,
+    pub timeout_in_millis: Option<usize>,
     #[serde(skip)]
     pub trigger: String,
     #[serde(skip)]
@@ -129,15 +129,14 @@ pub struct AmazonApigatewayIntegration {
 impl AmazonApigatewayIntegration {
     pub fn extract_supplementary_data(&mut self) {
         let splits: Vec<&str> = self.uri.split(':').collect();
-        let trigger_type = match splits[4] {
+        self.trigger = match splits[4] {
             "lambda" => {
                 let x = splits.last().unwrap().split_once('{').unwrap();
                 self.arn = x.1.split_once('}').unwrap().0.to_string();
-                "Lambda"
+                "Lambda".to_owned()
             }
-            "state" => "Step Function",
-            x => x,
+            "state" => "Step Function".to_owned(),
+            x => x.to_owned(),
         };
-        self.trigger = format!("{} -> {}", splits[2], trigger_type);
     }
 }

@@ -52,16 +52,21 @@ struct InputQuery<'a> {
     args: BTreeMap<Arc<str>, FieldValue>,
 }
 
-impl From<InputQuery<'_>> for Lint {
-    fn from(value: InputQuery) -> Self {
-        Self {
-            name: "Get methods".to_string(),
-            terraform: None,
-            api: Some(value.query.to_string()),
-            error: "GET endpoints should have tags".to_string(),
-        }
-    }
-}
+// impl From<InputQuery<'_>> for Lint {
+//     fn from(value: InputQuery) -> Self {
+//         Self {
+//             name: "Get methods".to_string(),
+//             terraform: None,
+//             api: Some(value.query.to_string()),
+//             error: "GET endpoints should have tags".to_string(),
+//             args: value
+//                 .args
+//                 .into_iter()
+//                 .map(|(k, v)| (k.to_string(), v.to_string()))
+//                 .collect(),
+//         }
+//     }
+// }
 
 fn lint_main(args: Args) -> anyhow::Result<()> {
     let config = std::fs::read_to_string(&args.config).expect("could not read config file");
@@ -91,12 +96,22 @@ fn lint_terraform_and_api(tf: &PathBuf, api: &PathBuf, lints: &Vec<Lint>) -> any
     let hcl_schema = HclAdapter::schema();
     let oa_adapter = Arc::new(OpenApiAdapter::new(api.to_path_buf()));
     let oa_schema = OpenApiAdapter::schema();
-    let variables: BTreeMap<Arc<str>, FieldValue> = std::collections::BTreeMap::new();
 
     let mut passes = true;
 
     for lint in lints {
         if let (Some(terraform), Some(openapi)) = (&lint.terraform, &lint.api) {
+            let variables: BTreeMap<Arc<str>, FieldValue> = if lint.tf_args.len() > 0 {
+                let v = lint
+                    .tf_args
+                    .iter()
+                    .map(|(k, v)| (Arc::from(k.as_str()), v.into()))
+                    .collect();
+
+                v
+            } else {
+                BTreeMap::new()
+            };
             let mut terraform_lint = Vec::new();
             for data_item in execute_query(
                 hcl_schema,
@@ -112,6 +127,17 @@ fn lint_terraform_and_api(tf: &PathBuf, api: &PathBuf, lints: &Vec<Lint>) -> any
                     .collect();
                 terraform_lint.push(transparent);
             }
+            let variables: BTreeMap<Arc<str>, FieldValue> = if lint.oa_args.len() > 0 {
+                let v = lint
+                    .oa_args
+                    .iter()
+                    .map(|(k, v)| (Arc::from(k.as_str()), v.into()))
+                    .collect();
+
+                v
+            } else {
+                BTreeMap::new()
+            };
             let mut openapi_lint = Vec::new();
             for data_item in
                 execute_query(oa_schema, oa_adapter.clone(), openapi, variables.clone())
@@ -142,6 +168,17 @@ fn lint_terraform_and_api(tf: &PathBuf, api: &PathBuf, lints: &Vec<Lint>) -> any
                 passes = false;
             }
         } else if let Some(terraform) = &lint.terraform {
+            let variables: BTreeMap<Arc<str>, FieldValue> = if lint.tf_args.len() > 0 {
+                let v = lint
+                    .tf_args
+                    .iter()
+                    .map(|(k, v)| (Arc::from(k.as_str()), v.into()))
+                    .collect();
+
+                v
+            } else {
+                BTreeMap::new()
+            };
             let mut terraform_lint = Vec::new();
             for data_item in execute_query(
                 hcl_schema,
@@ -162,6 +199,17 @@ fn lint_terraform_and_api(tf: &PathBuf, api: &PathBuf, lints: &Vec<Lint>) -> any
                 passes = false;
             }
         } else if let Some(api) = &lint.api {
+            let variables: BTreeMap<Arc<str>, FieldValue> = if lint.oa_args.len() > 0 {
+                let v = lint
+                    .oa_args
+                    .iter()
+                    .map(|(k, v)| (Arc::from(k.as_str()), v.into()))
+                    .collect();
+
+                v
+            } else {
+                BTreeMap::new()
+            };
             let mut api_lint = Vec::new();
             for data_item in execute_query(oa_schema, oa_adapter.clone(), api, variables.clone())
                 .expect("not a legal query")
