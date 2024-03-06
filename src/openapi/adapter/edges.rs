@@ -60,6 +60,7 @@ pub(super) fn resolve_path_edge<'a, V: AsVertex<Vertex> + 'a>(
     match edge_name {
         "delete" => path::delete(contexts, resolve_info),
         "get" => path::get(contexts, resolve_info),
+        "operations" => path::operations(contexts, resolve_info),
         "options" => path::options(contexts, resolve_info),
         "patch" => path::patch(contexts, resolve_info),
         "post" => path::post(contexts, resolve_info),
@@ -110,6 +111,38 @@ mod path {
                 Some(op) => Box::new(std::iter::once(Vertex::Operation(op.clone()))),
                 None => Box::new(std::iter::empty()),
             }
+        })
+    }
+
+    pub(super) fn operations<'a, V: AsVertex<Vertex> + 'a>(
+        contexts: ContextIterator<'a, V>,
+        _resolve_info: &ResolveEdgeInfo,
+    ) -> ContextOutcomeIterator<'a, V, VertexIterator<'a, Vertex>> {
+        resolve_neighbors_with(contexts, move |vertex| {
+            let route: &Route = vertex
+                .as_path()
+                .expect("conversion failed, vertex was not a Path");
+
+            let mut operations = Vec::new();
+            if let Some(op) = &route.delete {
+                operations.push(Vertex::Operation(op.clone()));
+            }
+            if let Some(op) = &route.get {
+                operations.push(Vertex::Operation(op.clone()));
+            }
+            if let Some(op) = &route.options {
+                operations.push(Vertex::Operation(op.clone()));
+            }
+            if let Some(op) = &route.patch {
+                operations.push(Vertex::Operation(op.clone()));
+            }
+            if let Some(op) = &route.post {
+                operations.push(Vertex::Operation(op.clone()));
+            }
+            if let Some(op) = &route.put {
+                operations.push(Vertex::Operation(op.clone()));
+            }
+            Box::new(operations.into_iter())
         })
     }
 
