@@ -23,6 +23,21 @@ lints:
             }
         }
       }
+  - name: All API endpoints should have timeouts greater than 5000
+    error: "All API endpoints should have tags"
+    api: |
+      {
+        Paths {
+          path @output
+            operations {
+              xAmazonApigatewayIntegration {
+                timeoutInMillis @filter(op: "<", value: ["$timeout"]) @output
+              }
+            }
+        }
+      }
+    oa_args:
+      timeout: 5000
   - name: Endpoints should be declared
     error: Some endpoints are not declared in either OpenAPI or Terraform
     api: |
