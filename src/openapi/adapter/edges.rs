@@ -8,7 +8,7 @@ use super::vertex::Vertex;
 pub(super) fn resolve_operation_edge<'a, V: AsVertex<Vertex> + 'a>(
     contexts: ContextIterator<'a, V>,
     edge_name: &str,
-    parameters: &EdgeParameters,
+    _parameters: &EdgeParameters,
     resolve_info: &ResolveEdgeInfo,
 ) -> ContextOutcomeIterator<'a, V, VertexIterator<'a, Vertex>> {
     match edge_name {
@@ -22,13 +22,13 @@ pub(super) fn resolve_operation_edge<'a, V: AsVertex<Vertex> + 'a>(
 }
 
 mod operation {
-    use openapiv3::Operation;
+
     use trustfall::provider::{
         resolve_neighbors_with, AsVertex, ContextIterator, ContextOutcomeIterator, ResolveEdgeInfo,
         VertexIterator,
     };
 
-    use crate::openapi::adapter::utils::{AmazonApigatewayIntegration, Operator};
+    use crate::openapi::adapter::utils::Operator;
 
     use super::super::vertex::Vertex;
 
@@ -54,7 +54,7 @@ mod operation {
 pub(super) fn resolve_path_edge<'a, V: AsVertex<Vertex> + 'a>(
     contexts: ContextIterator<'a, V>,
     edge_name: &str,
-    parameters: &EdgeParameters,
+    _parameters: &EdgeParameters,
     resolve_info: &ResolveEdgeInfo,
 ) -> ContextOutcomeIterator<'a, V, VertexIterator<'a, Vertex>> {
     match edge_name {
@@ -72,13 +72,13 @@ pub(super) fn resolve_path_edge<'a, V: AsVertex<Vertex> + 'a>(
 }
 
 mod path {
-    use openapiv3::{PathItem, ReferenceOr};
+
     use trustfall::provider::{
         resolve_neighbors_with, AsVertex, ContextIterator, ContextOutcomeIterator, ResolveEdgeInfo,
         VertexIterator,
     };
 
-    use crate::openapi::adapter::utils::{Operator, Route};
+    use crate::openapi::adapter::utils::Route;
 
     use super::super::vertex::Vertex;
 

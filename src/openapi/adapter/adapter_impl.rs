@@ -66,7 +66,7 @@ impl OpenApiAdapter {
             .expect("path not found")
             .clone()
             .into();
-        route.path = path.clone().to_string();
+        route.path = path.to_string();
         Vertex::Path(route)
     }
 
@@ -98,7 +98,7 @@ impl<'a> trustfall::provider::Adapter<'a> for OpenApiAdapter {
         &self,
         edge_name: &Arc<str>,
         parameters: &EdgeParameters,
-        resolve_info: &ResolveInfo,
+        _resolve_info: &ResolveInfo,
     ) -> VertexIterator<'a, Self::Vertex> {
         match edge_name.as_ref() {
             "Info" => Box::new(std::iter::once(self.info())),

@@ -47,7 +47,7 @@ impl<'a> trustfall::provider::Adapter<'a> for HclAdapter {
         &self,
         edge_name: &Arc<str>,
         parameters: &EdgeParameters,
-        resolve_info: &ResolveInfo,
+        _resolve_info: &ResolveInfo,
     ) -> VertexIterator<'a, Self::Vertex> {
         match edge_name.as_ref() {
             "ApiConfig" => match &self.data.api_config {
@@ -55,12 +55,7 @@ impl<'a> trustfall::provider::Adapter<'a> for HclAdapter {
                 None => Box::new(std::iter::empty()),
             },
             "Lambda" => {
-                let iter = self
-                    .data
-                    .lambda
-                    .clone()
-                    .into_iter()
-                    .map(|lambda| Vertex::Lambda(lambda));
+                let iter = self.data.lambda.clone().into_iter().map(Vertex::Lambda);
                 Box::new(iter)
             }
             "Module" => {
@@ -79,37 +74,29 @@ impl<'a> trustfall::provider::Adapter<'a> for HclAdapter {
                         "failed to find parameter 'tag' when resolving 'Module' starting vertices",
                     )
                     .as_str();
-                let module_tag = tag.clone();
+                let module_tag = tag;
                 let iter: Vec<Vertex> = self
                     .data
                     .raw
                     .clone()
                     .into_iter()
                     .filter_map(move |value| {
-                        if let Some(tag) = module_tag.clone() {
-                            if let Some(v) = value.get(name).and_then(|x| x.get(tag)) {
-                                Some(Vertex::Module(Module::from_serde(v.clone(), tag)))
-                            } else {
-                                None
-                            }
+                        if let Some(tag) = module_tag {
+                            value
+                                .get(name)
+                                .and_then(|x| x.get(tag))
+                                .map(|v| Vertex::Module(Module::from_serde(v.clone(), tag)))
                         } else {
-                            if let Some(v) = value.get(name) {
-                                Some(Vertex::Module(Module::from_serde(v.clone(), name)))
-                            } else {
-                                None
-                            }
+                            value
+                                .get(name)
+                                .map(|v| Vertex::Module(Module::from_serde(v.clone(), name)))
                         }
                     })
                     .collect();
                 Box::new(iter.into_iter())
             }
             "Modules" => {
-                let iter = self
-                    .data
-                    .modules
-                    .clone()
-                    .into_iter()
-                    .map(|module| Vertex::Module(module));
+                let iter = self.data.modules.clone().into_iter().map(Vertex::Module);
                 Box::new(iter)
             }
             _ => {

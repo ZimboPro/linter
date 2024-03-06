@@ -1,7 +1,5 @@
 use std::{ffi::OsStr, path::PathBuf};
 
-use hcl;
-
 fn find_files(path: PathBuf) -> Vec<PathBuf> {
     let mut files = Vec::new();
     for entries in path.read_dir().expect("Failed to get dir contents") {

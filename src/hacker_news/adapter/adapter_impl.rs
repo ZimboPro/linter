@@ -30,6 +30,12 @@ pub struct HackerNewsAdapter {
     item_subtypes: HashSet<String>,
 }
 
+impl Default for HackerNewsAdapter {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl HackerNewsAdapter {
     pub const SCHEMA_TEXT: &'static str = include_str!("./schema.graphql");
 
@@ -131,7 +137,7 @@ impl<'a> trustfall::provider::Adapter<'a> for HackerNewsAdapter {
         &self,
         edge_name: &Arc<str>,
         parameters: &EdgeParameters,
-        resolve_info: &ResolveInfo,
+        _resolve_info: &ResolveInfo,
     ) -> VertexIterator<'a, Self::Vertex> {
         match edge_name.as_ref() {
             "FrontPage" => self.front_page(),

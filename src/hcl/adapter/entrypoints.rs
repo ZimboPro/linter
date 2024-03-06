@@ -11,8 +11,8 @@ pub(super) fn lambda<'a>(_resolve_info: &ResolveInfo) -> VertexIterator<'a, Vert
 }
 
 pub(super) fn module<'a>(
-    name: &str,
-    tag: Option<&str>,
+    _name: &str,
+    _tag: Option<&str>,
     _resolve_info: &ResolveInfo,
 ) -> VertexIterator<'a, Vertex> {
     todo!("implement resolving starting vertices for entrypoint edge 'Module'")

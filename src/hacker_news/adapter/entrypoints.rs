@@ -7,22 +7,19 @@ pub(super) fn front_page<'a>(_resolve_info: &ResolveInfo) -> VertexIterator<'a, 
 }
 
 pub(super) fn latest<'a>(
-    max: Option<i64>,
+    _max: Option<i64>,
     _resolve_info: &ResolveInfo,
 ) -> VertexIterator<'a, Vertex> {
     todo!("implement resolving starting vertices for entrypoint edge 'Latest'")
 }
 
 pub(super) fn top<'a>(
-    max: Option<i64>,
+    _max: Option<i64>,
     _resolve_info: &ResolveInfo,
 ) -> VertexIterator<'a, Vertex> {
     todo!("implement resolving starting vertices for entrypoint edge 'Top'")
 }
 
-pub(super) fn user<'a>(
-    name: &str,
-    _resolve_info: &ResolveInfo,
-) -> VertexIterator<'a, Vertex> {
+pub(super) fn user<'a>(_name: &str, _resolve_info: &ResolveInfo) -> VertexIterator<'a, Vertex> {
     todo!("implement resolving starting vertices for entrypoint edge 'User'")
 }

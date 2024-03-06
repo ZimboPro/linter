@@ -1,8 +1,4 @@
-use std::{
-    collections::BTreeMap,
-    path::{Path, PathBuf},
-    sync::Arc,
-};
+use std::{collections::BTreeMap, path::PathBuf, sync::Arc};
 
 use anyhow::Ok;
 use clap::Parser;
@@ -12,10 +8,10 @@ use linter::{
 };
 use serde::Deserialize;
 use simplelog::{
-    debug, error, info, warn, Color, ColorChoice, Config, ConfigBuilder, Level, LevelFilter,
-    TermLogger, TerminalMode,
+    error, info, warn, Color, ColorChoice, ConfigBuilder, Level, LevelFilter, TermLogger,
+    TerminalMode,
 };
-use trustfall::{execute_query, FieldValue, Schema, TransparentValue};
+use trustfall::{execute_query, FieldValue};
 
 #[derive(Debug, Parser)]
 pub struct Args {
@@ -82,7 +78,7 @@ fn lint_main(args: Args) -> anyhow::Result<()> {
         std::process::exit(1);
     }
     if let Some(api) = &args.api {
-        lint_terraform_and_api(&args.terraform, &api, &config.lints)?;
+        lint_terraform_and_api(&args.terraform, api, &config.lints)?;
     } else {
         lint_terraform(&args.terraform, &config.lints)?;
     }
@@ -105,7 +101,7 @@ fn lint_terraform_and_api(tf: &PathBuf, api: &PathBuf, lints: &Vec<Lint>) -> any
             for data_item in execute_query(
                 hcl_schema,
                 hcl_adapter.clone(),
-                &terraform,
+                terraform,
                 variables.clone(),
             )
             .expect("not a legal query")
@@ -118,7 +114,7 @@ fn lint_terraform_and_api(tf: &PathBuf, api: &PathBuf, lints: &Vec<Lint>) -> any
             }
             let mut openapi_lint = Vec::new();
             for data_item in
-                execute_query(oa_schema, oa_adapter.clone(), &openapi, variables.clone())
+                execute_query(oa_schema, oa_adapter.clone(), openapi, variables.clone())
                     .expect("not a legal query")
             {
                 let transparent: serde_json::Value = data_item
@@ -150,7 +146,7 @@ fn lint_terraform_and_api(tf: &PathBuf, api: &PathBuf, lints: &Vec<Lint>) -> any
             for data_item in execute_query(
                 hcl_schema,
                 hcl_adapter.clone(),
-                &terraform,
+                terraform,
                 variables.clone(),
             )
             .expect("not a legal query")
@@ -167,7 +163,7 @@ fn lint_terraform_and_api(tf: &PathBuf, api: &PathBuf, lints: &Vec<Lint>) -> any
             }
         } else if let Some(api) = &lint.api {
             let mut api_lint = Vec::new();
-            for data_item in execute_query(oa_schema, oa_adapter.clone(), &api, variables.clone())
+            for data_item in execute_query(oa_schema, oa_adapter.clone(), api, variables.clone())
                 .expect("not a legal query")
             {
                 let transparent: serde_json::Value = data_item
@@ -202,7 +198,7 @@ fn lint_terraform(tf: &PathBuf, lints: &Vec<Lint>) -> anyhow::Result<()> {
             for data_item in execute_query(
                 hcl_schema,
                 hcl_adapter.clone(),
-                &terraform,
+                terraform,
                 variables.clone(),
             )
             .expect("not a legal query")

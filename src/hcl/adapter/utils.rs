@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use anyhow::anyhow;
 use simplelog::{debug, error};
 
-use crate::util::{find_files, find_files_ignore_dir};
+use crate::util::find_files_ignore_dir;
 
 use super::model::{
     ApiConfig, Backend, Lambda, Module, RequiredProvider, TemplateVariable, Terraform, Variable,
@@ -42,7 +42,7 @@ fn extract_modules(json: &Vec<serde_json::Value>) -> Vec<Module> {
                     version: record
                         .1
                         .get("version")
-                        .expect(format!("Version should be set: {}", record.0.to_string()).as_str())
+                        .unwrap_or_else(|| panic!("Version should be set: {}", record.0))
                         .to_string(),
                     variables: value
                         .as_object()
@@ -138,14 +138,9 @@ fn extract_lambda(json: &Vec<serde_json::Value>) -> Vec<Lambda> {
 
         if let Some(lambdas_permissions) = val {
             for lambda in lambdas.iter_mut() {
-                lambdas_permissions.get(lambda.name.clone()).map(|x| {
-                    // match x {
-                    // serde_json::Value::Array(permissions) => {
+                if let Some(x) = lambdas_permissions.get(lambda.name.clone()) {
                     lambda.permissions = serde_json::from_value(x.clone()).unwrap();
-                    // }
-                    // ,
-                    // _ => unreachable!(),
-                });
+                }
             }
         }
     }
@@ -189,10 +184,10 @@ fn extract_api_config(json: &Vec<serde_json::Value>, lambdas: Vec<Lambda>) -> Op
         let template_file = sections[1].to_string();
         debug!("Template file: {}", template_file);
         let mut variables = sections[2].to_string();
-        variables = variables.replacen(",", "", 1);
+        variables = variables.replacen(',', "", 1);
         variables = variables.replace(")}", "");
-        variables = variables.replace("{", "");
-        variables = variables.replace("}", "");
+        variables = variables.replace('{', "");
+        variables = variables.replace('}', "");
         debug!("Variables: {}", variables);
         let template_variables: Vec<TemplateVariable> = variables
             .split(',')

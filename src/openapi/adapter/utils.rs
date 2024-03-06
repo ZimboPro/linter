@@ -1,7 +1,7 @@
 use merge_yaml_hash::MergeYamlHash;
 use openapiv3::{Operation, PathItem};
 use serde::{Deserialize, Serialize};
-use simplelog::{debug, error, info, warn};
+use simplelog::debug;
 use std::{ffi::OsStr, io::Read, path::PathBuf};
 
 /// Finds all the files with the extension in the directory recursively
@@ -131,8 +131,8 @@ impl AmazonApigatewayIntegration {
         let splits: Vec<&str> = self.uri.split(':').collect();
         let trigger_type = match splits[4] {
             "lambda" => {
-                let x = splits.last().unwrap().split_once("{").unwrap();
-                self.arn = x.1.split_once("}").unwrap().0.to_string();
+                let x = splits.last().unwrap().split_once('{').unwrap();
+                self.arn = x.1.split_once('}').unwrap().0.to_string();
                 "Lambda"
             }
             "state" => "Step Function",

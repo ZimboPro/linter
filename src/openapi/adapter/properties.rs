@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use trustfall::{
     provider::{
         field_property, resolve_property_with, AsVertex, ContextIterator, ContextOutcomeIterator,
@@ -8,7 +6,7 @@ use trustfall::{
     FieldValue,
 };
 
-use super::vertex::{self, Vertex};
+use super::vertex::Vertex;
 
 pub(super) fn resolve_amazon_apigateway_integration_property<'a, V: AsVertex<Vertex> + 'a>(
     contexts: ContextIterator<'a, V>,

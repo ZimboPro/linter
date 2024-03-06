@@ -1,7 +1,3 @@
-use std::rc::Rc;
-
-use openapiv3::{PathItem, ReferenceOr, Schema};
-
 use super::utils::{AmazonApigatewayIntegration, Operator, Route};
 
 #[non_exhaustive]

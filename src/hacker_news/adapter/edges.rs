@@ -8,7 +8,7 @@ use super::vertex::Vertex;
 pub(super) fn resolve_comment_edge<'a, V: AsVertex<Vertex> + 'a>(
     contexts: ContextIterator<'a, V>,
     edge_name: &str,
-    parameters: &EdgeParameters,
+    _parameters: &EdgeParameters,
     resolve_info: &ResolveEdgeInfo,
 ) -> ContextOutcomeIterator<'a, V, VertexIterator<'a, Vertex>> {
     match edge_name {
@@ -28,7 +28,7 @@ mod comment {
         VertexIterator,
     };
 
-    use crate::hacker_news::adapter::{adapter_impl::get_client, HackerNewsAdapter};
+    use crate::hacker_news::adapter::adapter_impl::get_client;
 
     use super::super::vertex::Vertex;
 
@@ -119,7 +119,7 @@ mod comment {
 pub(super) fn resolve_story_edge<'a, V: AsVertex<Vertex> + 'a>(
     contexts: ContextIterator<'a, V>,
     edge_name: &str,
-    parameters: &EdgeParameters,
+    _parameters: &EdgeParameters,
     resolve_info: &ResolveEdgeInfo,
 ) -> ContextOutcomeIterator<'a, V, VertexIterator<'a, Vertex>> {
     match edge_name {
@@ -202,7 +202,7 @@ mod story {
 pub(super) fn resolve_user_edge<'a, V: AsVertex<Vertex> + 'a>(
     contexts: ContextIterator<'a, V>,
     edge_name: &str,
-    parameters: &EdgeParameters,
+    _parameters: &EdgeParameters,
     resolve_info: &ResolveEdgeInfo,
 ) -> ContextOutcomeIterator<'a, V, VertexIterator<'a, Vertex>> {
     match edge_name {

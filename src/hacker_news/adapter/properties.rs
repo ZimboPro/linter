@@ -6,7 +6,7 @@ use trustfall::{
     FieldValue,
 };
 
-use super::vertex::{self, Vertex};
+use super::vertex::Vertex;
 
 pub(super) fn resolve_comment_property<'a, V: AsVertex<Vertex> + 'a>(
     contexts: ContextIterator<'a, V>,

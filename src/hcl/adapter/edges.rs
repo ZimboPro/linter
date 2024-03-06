@@ -8,7 +8,7 @@ use super::vertex::Vertex;
 pub(super) fn resolve_api_config_edge<'a, V: AsVertex<Vertex> + 'a>(
     contexts: ContextIterator<'a, V>,
     edge_name: &str,
-    parameters: &EdgeParameters,
+    _parameters: &EdgeParameters,
     resolve_info: &ResolveEdgeInfo,
 ) -> ContextOutcomeIterator<'a, V, VertexIterator<'a, Vertex>> {
     match edge_name {
@@ -42,7 +42,7 @@ mod api_config {
                     .template_variables
                     .clone()
                     .into_iter()
-                    .map(|x| Vertex::TemplateVariable(x)),
+                    .map(Vertex::TemplateVariable),
             )
         })
     }
@@ -51,7 +51,7 @@ mod api_config {
 pub(super) fn resolve_lambda_edge<'a, V: AsVertex<Vertex> + 'a>(
     contexts: ContextIterator<'a, V>,
     edge_name: &str,
-    parameters: &EdgeParameters,
+    _parameters: &EdgeParameters,
     resolve_info: &ResolveEdgeInfo,
 ) -> ContextOutcomeIterator<'a, V, VertexIterator<'a, Vertex>> {
     match edge_name {
@@ -85,7 +85,7 @@ mod lambda {
                     .permissions
                     .clone()
                     .into_iter()
-                    .map(|x| Vertex::Permissions(x)),
+                    .map(Vertex::Permissions),
             )
         })
     }
@@ -94,7 +94,7 @@ mod lambda {
 pub(super) fn resolve_module_edge<'a, V: AsVertex<Vertex> + 'a>(
     contexts: ContextIterator<'a, V>,
     edge_name: &str,
-    parameters: &EdgeParameters,
+    _parameters: &EdgeParameters,
     resolve_info: &ResolveEdgeInfo,
 ) -> ContextOutcomeIterator<'a, V, VertexIterator<'a, Vertex>> {
     match edge_name {
@@ -123,13 +123,7 @@ mod module {
             let vertex: &Module = vertex
                 .as_module()
                 .expect("conversion failed, vertex was not a Module");
-            Box::new(
-                vertex
-                    .variables
-                    .clone()
-                    .into_iter()
-                    .map(|x| Vertex::Variable(x)),
-            )
+            Box::new(vertex.variables.clone().into_iter().map(Vertex::Variable))
         })
     }
 }
@@ -137,7 +131,7 @@ mod module {
 pub(super) fn resolve_template_variable_edge<'a, V: AsVertex<Vertex> + 'a>(
     contexts: ContextIterator<'a, V>,
     edge_name: &str,
-    parameters: &EdgeParameters,
+    _parameters: &EdgeParameters,
     resolve_info: &ResolveEdgeInfo,
 ) -> ContextOutcomeIterator<'a, V, VertexIterator<'a, Vertex>> {
     match edge_name {
@@ -179,7 +173,7 @@ mod template_variable {
 pub(super) fn resolve_terraform_edge<'a, V: AsVertex<Vertex> + 'a>(
     contexts: ContextIterator<'a, V>,
     edge_name: &str,
-    parameters: &EdgeParameters,
+    _parameters: &EdgeParameters,
     resolve_info: &ResolveEdgeInfo,
 ) -> ContextOutcomeIterator<'a, V, VertexIterator<'a, Vertex>> {
     match edge_name {
@@ -229,7 +223,7 @@ mod terraform {
                     .required_providers
                     .clone()
                     .into_iter()
-                    .map(|x| Vertex::RequiredProvider(x)),
+                    .map(Vertex::RequiredProvider),
             )
         })
     }

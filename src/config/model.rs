@@ -1,8 +1,5 @@
-use std::{collections::BTreeMap, path::PathBuf, sync::Arc};
-
 use serde::{Deserialize, Serialize};
 use simplelog::error;
-use trustfall::FieldValue;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Config {
@@ -68,7 +65,7 @@ mod tests {
                 error: "test".to_string(),
             }],
         };
-        assert_eq!(config.validate().is_ok(), true);
+        assert!(config.validate().is_ok());
     }
 
     #[test]
@@ -81,7 +78,7 @@ mod tests {
                 error: "test".to_string(),
             }],
         };
-        assert_eq!(config.validate().is_err(), true);
+        assert!(config.validate().is_err());
     }
 
     #[test]
@@ -94,7 +91,7 @@ mod tests {
                 error: "test".to_string(),
             }],
         };
-        assert_eq!(config.has_api_lints(), true);
+        assert!(config.has_api_lints());
     }
 
     #[test]
@@ -107,6 +104,6 @@ mod tests {
                 error: "test".to_string(),
             }],
         };
-        assert_eq!(config.has_api_lints(), false);
+        assert!(!config.has_api_lints());
     }
 }
