@@ -103,7 +103,7 @@ fn lint_terraform_and_api(tf: &PathBuf, api: &PathBuf, lints: &Vec<Lint>) -> any
 
     for lint in lints {
         if let (Some(terraform), Some(openapi)) = (&lint.terraform, &lint.api) {
-            let variables: BTreeMap<Arc<str>, FieldValue> = if lint.tf_args.len() > 0 {
+            let variables: BTreeMap<Arc<str>, FieldValue> = if !lint.tf_args.is_empty() {
                 let v = lint
                     .tf_args
                     .iter()
@@ -129,7 +129,7 @@ fn lint_terraform_and_api(tf: &PathBuf, api: &PathBuf, lints: &Vec<Lint>) -> any
                     .collect();
                 terraform_lint.push(transparent);
             }
-            let variables: BTreeMap<Arc<str>, FieldValue> = if lint.oa_args.len() > 0 {
+            let variables: BTreeMap<Arc<str>, FieldValue> = if !lint.oa_args.is_empty() {
                 let v = lint
                     .oa_args
                     .iter()
@@ -170,7 +170,7 @@ fn lint_terraform_and_api(tf: &PathBuf, api: &PathBuf, lints: &Vec<Lint>) -> any
                 passes = false;
             }
         } else if let Some(terraform) = &lint.terraform {
-            let variables: BTreeMap<Arc<str>, FieldValue> = if lint.tf_args.len() > 0 {
+            let variables: BTreeMap<Arc<str>, FieldValue> = if !lint.tf_args.is_empty() {
                 let v = lint
                     .tf_args
                     .iter()
@@ -201,7 +201,7 @@ fn lint_terraform_and_api(tf: &PathBuf, api: &PathBuf, lints: &Vec<Lint>) -> any
                 passes = false;
             }
         } else if let Some(api) = &lint.api {
-            let variables: BTreeMap<Arc<str>, FieldValue> = if lint.oa_args.len() > 0 {
+            let variables: BTreeMap<Arc<str>, FieldValue> = if !lint.oa_args.is_empty() {
                 let v = lint
                     .oa_args
                     .iter()
