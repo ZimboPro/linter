@@ -32,7 +32,6 @@ impl Config {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Lint {
     pub name: String,
-    pub description: String,
     pub terraform: Option<String>,
     pub api: Option<String>,
     pub error: String,
@@ -64,7 +63,6 @@ mod tests {
         let config = Config {
             lints: vec![Lint {
                 name: "test".to_string(),
-                description: "test".to_string(),
                 terraform: Some(".".into()),
                 api: None,
                 error: "test".to_string(),
@@ -78,7 +76,6 @@ mod tests {
         let config = Config {
             lints: vec![Lint {
                 name: "test".to_string(),
-                description: "test".to_string(),
                 terraform: None,
                 api: None,
                 error: "test".to_string(),
@@ -92,7 +89,6 @@ mod tests {
         let config = Config {
             lints: vec![Lint {
                 name: "test".to_string(),
-                description: "test".to_string(),
                 terraform: None,
                 api: Some(".".into()),
                 error: "test".to_string(),
@@ -106,7 +102,6 @@ mod tests {
         let config = Config {
             lints: vec![Lint {
                 name: "test".to_string(),
-                description: "test".to_string(),
                 terraform: Some(".".into()),
                 api: None,
                 error: "test".to_string(),
