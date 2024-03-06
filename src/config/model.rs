@@ -35,9 +35,9 @@ pub struct Lint {
     pub api: Option<String>,
     pub error: String,
     #[serde(default)]
-    pub tf_args: HashMap<String, String>,
+    pub tf_args: HashMap<String, serde_json::Value>,
     #[serde(default)]
-    pub oa_args: HashMap<String, String>,
+    pub oa_args: HashMap<String, serde_json::Value>,
 }
 
 impl Lint {

@@ -3,8 +3,10 @@ use std::{collections::BTreeMap, path::PathBuf, sync::Arc};
 use anyhow::Ok;
 use clap::Parser;
 use linter::{
-    config::model::Lint, hcl::adapter::HclAdapter, openapi::adapter::OpenApiAdapter,
-    util::from_field_value,
+    config::model::Lint,
+    hcl::adapter::HclAdapter,
+    openapi::adapter::OpenApiAdapter,
+    util::{from_field_value, from_json_value},
 };
 use serde::Deserialize;
 use simplelog::{
@@ -105,7 +107,7 @@ fn lint_terraform_and_api(tf: &PathBuf, api: &PathBuf, lints: &Vec<Lint>) -> any
                 let v = lint
                     .tf_args
                     .iter()
-                    .map(|(k, v)| (Arc::from(k.as_str()), v.into()))
+                    .map(|(k, v)| (Arc::from(k.as_str()), from_json_value(v)))
                     .collect();
 
                 v
@@ -131,7 +133,7 @@ fn lint_terraform_and_api(tf: &PathBuf, api: &PathBuf, lints: &Vec<Lint>) -> any
                 let v = lint
                     .oa_args
                     .iter()
-                    .map(|(k, v)| (Arc::from(k.as_str()), v.into()))
+                    .map(|(k, v)| (Arc::from(k.as_str()), from_json_value(v)))
                     .collect();
 
                 v
@@ -172,7 +174,7 @@ fn lint_terraform_and_api(tf: &PathBuf, api: &PathBuf, lints: &Vec<Lint>) -> any
                 let v = lint
                     .tf_args
                     .iter()
-                    .map(|(k, v)| (Arc::from(k.as_str()), v.into()))
+                    .map(|(k, v)| (Arc::from(k.as_str()), from_json_value(v)))
                     .collect();
 
                 v
@@ -203,7 +205,7 @@ fn lint_terraform_and_api(tf: &PathBuf, api: &PathBuf, lints: &Vec<Lint>) -> any
                 let v = lint
                     .oa_args
                     .iter()
-                    .map(|(k, v)| (Arc::from(k.as_str()), v.into()))
+                    .map(|(k, v)| (Arc::from(k.as_str()), from_json_value(v)))
                     .collect();
 
                 v

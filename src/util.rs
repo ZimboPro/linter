@@ -88,3 +88,28 @@ pub fn from_field_value(value: &FieldValue) -> serde_json::Value {
         _ => todo!(),
     }
 }
+
+pub fn from_json_value(value: &serde_json::Value) -> FieldValue {
+    match value {
+        serde_json::Value::Null => FieldValue::Null,
+        serde_json::Value::Bool(val) => FieldValue::Boolean(*val),
+        serde_json::Value::Number(val) => {
+            if val.is_i64() {
+                FieldValue::Int64(val.as_i64().unwrap())
+            } else if val.is_u64() {
+                FieldValue::Uint64(val.as_u64().unwrap())
+            } else {
+                FieldValue::Float64(val.as_f64().unwrap())
+            }
+        }
+        serde_json::Value::String(val) => FieldValue::String(val.to_string().into()),
+        serde_json::Value::Array(val) => {
+            let mut list = Vec::new();
+            for item in val.iter() {
+                list.push(from_json_value(item));
+            }
+            FieldValue::List(list.into())
+        }
+        _ => todo!(),
+    }
+}
