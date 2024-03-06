@@ -2,6 +2,17 @@
 name = "linter"
 version = "0.1.0"
 edition = "2021"
+repository = "https://github.com/ZimboPro/hcl-openapi-lints"
+description = "A linter for HCL and OpenAPI files"
+authors = ["Leslie de Jager"]
+readme = "README.md"
+license = "Apache-2.0"
+
+[package.metadata.wix]
+upgrade-guid = "3B2D2988-5EF2-4262-BDCD-7B0F73D2390E"
+path-guid = "33CFD5D6-ECE3-4A1C-A68D-CBA51FF0CAD3"
+license = false
+eula = false
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -20,3 +31,21 @@ serde_yaml = "0.9.32"
 simplelog = { version = "0.12.1", features = ["paris"] }
 trustfall = "0.7.1"
 yaml-rust = "0.4.5"
+
+# The profile that 'cargo dist' will build with
+[profile.dist]
+inherits = "release"
+lto = "thin"
+
+# Config for 'cargo dist'
+[workspace.metadata.dist]
+# The preferred cargo-dist version to use in CI (Cargo.toml SemVer syntax)
+cargo-dist-version = "0.8.0"
+# CI backends to support
+ci = ["github"]
+# The installers to generate for each app
+installers = ["shell", "powershell", "msi"]
+# Target platforms to build apps for (Rust target-triple syntax)
+targets = ["aarch64-apple-darwin", "x86_64-apple-darwin", "x86_64-unknown-linux-gnu", "x86_64-pc-windows-msvc"]
+# Publish jobs to run in CI
+pr-run-mode = "plan"
