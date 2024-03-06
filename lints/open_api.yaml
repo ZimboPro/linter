@@ -10,6 +10,19 @@ lints:
             }
         }
       }
+  - name: All API endpoints should have timeouts
+    error: "All API endpoints should have tags"
+    api: |
+      {
+        Paths {
+          path @output
+            operations {
+              xAmazonApigatewayIntegration {
+                timeoutInMillis @filter(op: "is_null")
+              }
+            }
+        }
+      }
   - name: Endpoints should be declared
     error: Some endpoints are not declared in either OpenAPI or Terraform
     api: |
@@ -40,10 +53,13 @@ lints:
               method @output
               xAmazonApigatewayIntegration {
                 arn @filter(op: "is_not_null") @output(name: "lambda_key")
+                trigger @filter(op: "=", value: ["$trigger_type"])
               }
             }
         }
       }
+    oa_args:
+      trigger_type: Lambda
     terraform: |
       {
         ApiConfig {
