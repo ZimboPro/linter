@@ -7,8 +7,8 @@ use std::{
 use anyhow::Ok;
 use clap::Parser;
 use linter::{
-    config::model::Lint, hcl::adapter::HclAdapter, hcl_main, hn_main, oa_main,
-    openapi::adapter::OpenApiAdapter, util::from_field_value,
+    config::model::Lint, hcl::adapter::HclAdapter, openapi::adapter::OpenApiAdapter,
+    util::from_field_value,
 };
 use serde::Deserialize;
 use simplelog::{
@@ -25,10 +25,17 @@ pub struct Args {
     pub terraform: PathBuf,
     #[clap(short, long)]
     pub api: Option<PathBuf>,
+    #[clap(short, long)]
+    pub verbose: bool,
 }
 
 fn main() -> anyhow::Result<()> {
-    println!("Hello, world!");
+    let args = Args::parse();
+    let level = if args.verbose {
+        LevelFilter::Debug
+    } else {
+        LevelFilter::Info
+    };
     let config = ConfigBuilder::new()
         .set_level_color(Level::Debug, Some(Color::Cyan))
         .set_level_color(Level::Info, Some(Color::Blue))
@@ -37,18 +44,8 @@ fn main() -> anyhow::Result<()> {
         .set_level_color(Level::Trace, Some(Color::Green))
         .set_time_level(LevelFilter::Off)
         .build();
-    TermLogger::init(
-        LevelFilter::Debug,
-        config,
-        TerminalMode::Stdout,
-        ColorChoice::Auto,
-    )
-    .unwrap();
-
-    // hn_main::main();
-    // oa_main::main();
-    // hcl_main::main();
-    lint_main()?;
+    TermLogger::init(level, config, TerminalMode::Stdout, ColorChoice::Auto).unwrap();
+    lint_main(args)?;
     Ok(())
 }
 
@@ -63,7 +60,6 @@ impl From<InputQuery<'_>> for Lint {
     fn from(value: InputQuery) -> Self {
         Self {
             name: "Get methods".to_string(),
-            description: "Desc".to_string(),
             terraform: None,
             api: Some(value.query.to_string()),
             error: "GET endpoints should have tags".to_string(),
@@ -71,28 +67,24 @@ impl From<InputQuery<'_>> for Lint {
     }
 }
 
-fn lint_main() -> anyhow::Result<()> {
-    let args = Args::parse();
+fn lint_main(args: Args) -> anyhow::Result<()> {
     let config = std::fs::read_to_string(&args.config).expect("could not read config file");
-    // let config: linter::config::model::Config =
-    //     serde_yaml::from_str(&config).expect("could not parse config file");
-    let config: InputQuery = ron::from_str(&config).expect("could not parse config file");
-    // if let Err(e) = config.validate() {
-    //     warn!("{}", e);
-    //     std::process::exit(1);
-    // }
+    let config: linter::config::model::Config =
+        serde_yaml::from_str(&config).expect("could not parse config file");
+    if let Err(e) = config.validate() {
+        warn!("{}", e);
+        std::process::exit(1);
+    }
     info!("config is valid");
 
-    // if config.has_api_lints() && args.api.is_none() {
-    //     warn!("config has api lints but no api file was provided");
-    //     std::process::exit(1);
-    // }
+    if config.has_api_lints() && args.api.is_none() {
+        warn!("config has api lints but no api file was provided");
+        std::process::exit(1);
+    }
     if let Some(api) = &args.api {
-        // lint_terraform_and_api(&args.terraform, &api, &config.lints)?;
-        lint_terraform_and_api(&args.terraform, &api, &vec![config.into()])?;
+        lint_terraform_and_api(&args.terraform, &api, &config.lints)?;
     } else {
-        // lint_terraform(&args.terraform, &config.lints)?;
-        lint_terraform(&args.terraform, &vec![config.into()])?;
+        lint_terraform(&args.terraform, &config.lints)?;
     }
     info!("All the tests passed");
     Ok(())
@@ -135,7 +127,13 @@ fn lint_terraform_and_api(tf: &PathBuf, api: &PathBuf, lints: &Vec<Lint>) -> any
                     .collect();
                 openapi_lint.push(transparent);
             }
-            if terraform_lint != openapi_lint {
+            let tf = terraform_lint
+                .iter()
+                .all(|item| openapi_lint.contains(item));
+            let oa = openapi_lint
+                .iter()
+                .all(|item| terraform_lint.contains(item));
+            if !tf || !oa {
                 error!("Check failed: {}", lint.name);
                 println!(
                     "\nTerraform results {}",
