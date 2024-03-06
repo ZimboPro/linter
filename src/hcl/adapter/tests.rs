@@ -1,10 +1,10 @@
 use trustfall::provider::check_adapter_invariants;
 
-use super::Adapter;
+use super::HclAdapter;
 
 #[test]
 fn adapter_satisfies_trustfall_invariants() {
-    let adapter = Adapter::new();
-    let schema = Adapter::schema();
+    let adapter = HclAdapter::default();
+    let schema = HclAdapter::schema();
     check_adapter_invariants(schema, adapter);
 }

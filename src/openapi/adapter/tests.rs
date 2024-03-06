@@ -4,7 +4,7 @@ use super::OpenApiAdapter;
 
 #[test]
 fn adapter_satisfies_trustfall_invariants() {
-    let adapter = OpenApiAdapter::new();
+    let adapter = OpenApiAdapter::default();
     let schema = OpenApiAdapter::schema();
     check_adapter_invariants(schema, adapter);
 }

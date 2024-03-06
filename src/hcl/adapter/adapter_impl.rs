@@ -21,7 +21,7 @@ use super::{
 static SCHEMA: OnceLock<Schema> = OnceLock::new();
 
 #[non_exhaustive]
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct HclAdapter {
     data: HCL,
 }

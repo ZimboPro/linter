@@ -69,6 +69,8 @@ mod tests {
                 terraform: Some(".".into()),
                 api: None,
                 error: "test".to_string(),
+                tf_args: HashMap::new(),
+                oa_args: HashMap::new(),
             }],
         };
         assert!(config.validate().is_ok());
@@ -82,6 +84,8 @@ mod tests {
                 terraform: None,
                 api: None,
                 error: "test".to_string(),
+                tf_args: HashMap::new(),
+                oa_args: HashMap::new(),
             }],
         };
         assert!(config.validate().is_err());
@@ -95,6 +99,8 @@ mod tests {
                 terraform: None,
                 api: Some(".".into()),
                 error: "test".to_string(),
+                tf_args: HashMap::new(),
+                oa_args: HashMap::new(),
             }],
         };
         assert!(config.has_api_lints());
@@ -108,6 +114,8 @@ mod tests {
                 terraform: Some(".".into()),
                 api: None,
                 error: "test".to_string(),
+                tf_args: HashMap::new(),
+                oa_args: HashMap::new(),
             }],
         };
         assert!(!config.has_api_lints());
