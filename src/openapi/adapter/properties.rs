@@ -78,6 +78,7 @@ pub(super) fn resolve_operation_property<'a, V: AsVertex<Vertex> + 'a>(
             resolve_property_with(contexts, field_property!(as_operation, description))
         }
         "summary" => resolve_property_with(contexts, field_property!(as_operation, summary)),
+        "method" => resolve_property_with(contexts, field_property!(as_operation, method)),
         "tags" => resolve_property_with(contexts, field_property!(as_operation, tags)),
         _ => {
             unreachable!(
