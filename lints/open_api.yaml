@@ -1,11 +1,60 @@
 lints:
-  - name: Get Tags
-    description: All GET API endpoints should have tags
-    error: "GET API endpoints should have tags"
+  - name: All API endpoints should have tags
+    error: "All API endpoints should have tags"
     api: |
-      Paths {
-        path @output
-          get {
-            tags @filter(op: "is_not_null")
+      {
+        Paths {
+          path @output
+            operations {
+              tags @filter(op: "is_null")
+            }
+        }
+      }
+  - name: Endpoints should be declared
+    error: Some endpoints are not declared in either OpenAPI or Terraform
+    api: |
+      {
+        Paths {
+          path @output
+            operations {
+              method @output
+            }
+        }
+      }
+    terraform: |
+      {
+        Lambda {
+              permissions {
+                http_path @filter(op: "is_not_null") @output(name: "path")
+                http_method  @output(name: "method")
+              }
+        }
+      }
+  - name: Endpoints link to correct Lambda
+    error: Some endpoints are not linked to the correct Lambda
+    api: |
+      {
+        Paths {
+          path @output
+            operations {
+              method @output
+              xAmazonApigatewayIntegration {
+                arn @filter(op: "is_not_null") @output(name: "lambda_key")
+              }
+            }
+        }
+      }
+    terraform: |
+      {
+        ApiConfig {
+          template_variables {
+            name @output(name: "lambda_key")
+            lambda {
+              permissions {
+                http_path @filter(op: "is_not_null") @output(name: "path")
+                http_method  @output(name: "method")
+              }
+            }
           }
+        }
       }
