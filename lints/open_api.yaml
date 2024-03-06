@@ -11,7 +11,7 @@ lints:
         }
       }
   - name: All API endpoints should have timeouts
-    error: "All API endpoints should have tags"
+    error: "All API endpoints should have timeouts"
     api: |
       {
         Paths {
@@ -24,7 +24,7 @@ lints:
         }
       }
   - name: All API endpoints should have timeouts greater than 5000
-    error: "All API endpoints should have tags"
+    error: "All API endpoints should have timeouts greater than 5000"
     api: |
       {
         Paths {
