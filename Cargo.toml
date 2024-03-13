@@ -17,7 +17,7 @@ eula = false
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-anyhow = "1.0.80"
+anyhow = "1.0.81"
 clap = { version = "4.5.2", features = ["derive"] }
 hcl-rs = "0.16.7"
 merge-yaml-hash = "0.3.0"
