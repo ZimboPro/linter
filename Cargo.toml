@@ -19,6 +19,7 @@ eula = false
 [dependencies]
 anyhow = "1.0.80"
 clap = { version = "4.5.2", features = ["derive"] }
+extism = "1.2.0"
 hcl-rs = "0.16.7"
 merge-yaml-hash = "0.3.0"
 openapiv3 = "2.0.0"
@@ -27,7 +28,6 @@ serde_json = "1.0.114"
 serde_yaml = "0.9.32"
 simplelog = { version = "0.12.2", features = ["paris"] }
 trustfall = "0.7.1"
-yaml-rust = "0.4.5"
 
 # The profile that 'cargo dist' will build with
 [profile.dist]
@@ -40,6 +40,9 @@ debug = 0
 [profile.release]
 lto = true
 codegen-units = 1
+
+[workspace]
+members = ["plugin_openapi"]
 # panic = "abort"
 
 # Config for 'cargo dist'
