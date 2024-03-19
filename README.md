@@ -40,8 +40,8 @@ is an error. For e.g. return any data where the tags are not set
 - !=
 - <
 - <=
-- >
-- >=
+- \>
+- \>=
 - contains
 - not_contains
 - one_of
@@ -59,6 +59,21 @@ is an error. For e.g. return any data where the tags are not set
 
  - count
 
-# Acknowledgements
+## Plugins
+
+This is list of available plugins or to be developed:
+ - [ ] OpenAPI
+ - [ ] Terraform
+ - [ ] NPM package.json
+ - [ ] Flutter pubspec.yaml
+ - [ ] Cargo Toml
+ - [ ] Github Actions
+ - [ ] File-system
+
+## Acknowledgements
 
  - [Trustfall](https://github.com/obi1kenobi/trustfall) which without, this project would not have been possible
+
+## Contributions
+
+Contributions are welcome.
