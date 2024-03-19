@@ -2,13 +2,15 @@ use std::{ffi::OsStr, path::PathBuf};
 
 fn find_files(path: PathBuf) -> Vec<PathBuf> {
     let mut files = Vec::new();
-    for entries in path.read_dir().expect("Failed to get dir contents") {
-        if let Ok(entry) = entries {
-            if entry.path().is_dir() {
-                files.extend(find_files(entry.path()));
-            } else if entry.path().is_file() && entry.path().extension() == Some(OsStr::new("tf")) {
-                files.push(entry.path().clone());
-            }
+    for entry in path
+        .read_dir()
+        .expect("Failed to get dir contents")
+        .flatten()
+    {
+        if entry.path().is_dir() {
+            files.extend(find_files(entry.path()));
+        } else if entry.path().is_file() && entry.path().extension() == Some(OsStr::new("tf")) {
+            files.push(entry.path().clone());
         }
     }
     files

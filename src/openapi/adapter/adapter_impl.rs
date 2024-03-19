@@ -87,7 +87,7 @@ impl OpenApiAdapter {
             .tags
             .clone()
             .into_iter()
-            .map(|x| Vertex::Tag(x));
+            .map(Vertex::Tag);
         Box::new(iter)
         // Vertex::Tags(self.openapi.tags.clone())
     }
