@@ -17,12 +17,16 @@ use trustfall::{execute_query, FieldValue};
 
 #[derive(Debug, Parser)]
 pub struct Args {
+    /// Config files with lint queries
     #[clap(short, long)]
-    pub config: PathBuf,
+    pub config: Vec<PathBuf>,
+    /// Folder containing terraform files
     #[clap(short, long)]
     pub terraform: PathBuf,
+    /// OpenAPI file or folder containing OpenAPI files
     #[clap(short, long)]
     pub api: Option<PathBuf>,
+    /// Verbose mode
     #[clap(short, long)]
     pub verbose: bool,
 }
@@ -47,50 +51,45 @@ fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[derive(Debug, Clone, Deserialize)]
-struct InputQuery<'a> {
-    query: &'a str,
-
-    args: BTreeMap<Arc<str>, FieldValue>,
-}
-
-// impl From<InputQuery<'_>> for Lint {
-//     fn from(value: InputQuery) -> Self {
-//         Self {
-//             name: "Get methods".to_string(),
-//             terraform: None,
-//             api: Some(value.query.to_string()),
-//             error: "GET endpoints should have tags".to_string(),
-//             args: value
-//                 .args
-//                 .into_iter()
-//                 .map(|(k, v)| (k.to_string(), v.to_string()))
-//                 .collect(),
-//         }
-//     }
-// }
-
 fn lint_main(args: Args) -> anyhow::Result<()> {
-    let config = std::fs::read_to_string(&args.config).expect("could not read config file");
-    let config: linter::config::model::Config =
-        serde_yaml::from_str(&config).expect("could not parse config file");
-    if let Err(e) = config.validate() {
-        warn!("{}", e);
-        std::process::exit(1);
-    }
+    let merged_configs = merge_lint_files(&args.config)?;
     info!("config is valid");
 
-    if config.has_api_lints() && args.api.is_none() {
+    if merged_configs.has_api_lints() && args.api.is_none() {
         warn!("config has api lints but no api file was provided");
         std::process::exit(1);
     }
     if let Some(api) = &args.api {
-        lint_terraform_and_api(&args.terraform, api, &config.lints)?;
+        lint_terraform_and_api(&args.terraform, api, &merged_configs.lints)?;
     } else {
-        lint_terraform(&args.terraform, &config.lints)?;
+        lint_terraform(&args.terraform, &merged_configs.lints)?;
     }
     info!("All the tests passed");
     Ok(())
+}
+
+/// Merge and validate the lint files
+fn merge_lint_files(configs: &Vec<PathBuf>) -> anyhow::Result<linter::config::model::Config> {
+    let mut merged_configs = linter::config::model::Config::default();
+    for config in configs {
+        let config = std::fs::read_to_string(&config).expect("could not read config file");
+        let config: linter::config::model::Config =
+            serde_yaml::from_str(&config).expect("could not parse config file");
+        if let Err(e) = config.validate() {
+            warn!("{}", e);
+            return Err(anyhow::anyhow!(
+                "Some of the lints do not have any lint attached to it"
+            ));
+        }
+        merged_configs.lints.extend(config.lints);
+    }
+    if let Err(e) = merged_configs.validate() {
+        warn!("{}", e);
+        return Err(anyhow::anyhow!(
+            "Some of the lints do not have any lint attached to it"
+        ));
+    }
+    Ok(merged_configs)
 }
 
 fn lint_terraform_and_api(tf: &PathBuf, api: &PathBuf, lints: &Vec<Lint>) -> anyhow::Result<()> {
