@@ -33,3 +33,6 @@
    * lints dir/file
    * allow for comparing of lints
    * Determine when lint fails
+ * Limit number of plugins
+   * Will reduce RC and ARC issues (reference counting)
+   * costly since across WASM boundary
