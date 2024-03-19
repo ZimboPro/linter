@@ -39,15 +39,16 @@ pub(super) fn read_file(path: &str) -> String {
 
 pub fn find_files(path: PathBuf, extension: &str) -> Vec<PathBuf> {
     let mut files = Vec::new();
-    for entries in path.read_dir().expect("Failed to get dir contents") {
-        if let Ok(entry) = entries {
-            if entry.path().is_dir() {
-                files.extend(find_files(entry.path(), extension));
-            } else if entry.path().is_file()
-                && entry.path().extension() == Some(OsStr::new(extension))
-            {
-                files.push(entry.path().clone());
-            }
+    for entry in path
+        .read_dir()
+        .expect("Failed to get dir contents")
+        .flatten()
+    {
+        if entry.path().is_dir() {
+            files.extend(find_files(entry.path(), extension));
+        } else if entry.path().is_file() && entry.path().extension() == Some(OsStr::new(extension))
+        {
+            files.push(entry.path().clone());
         }
     }
     files

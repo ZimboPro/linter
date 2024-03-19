@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::path::Path;
 
 use anyhow::anyhow;
 use simplelog::{debug, error};
@@ -10,8 +10,8 @@ use super::model::{
     HCL,
 };
 
-pub fn extract_data_from_hcl(path: &PathBuf) -> HCL {
-    let files = find_files_ignore_dir(path.clone(), "tf", ".terraform");
+pub fn extract_data_from_hcl(path: &Path) -> HCL {
+    let files = find_files_ignore_dir(path.to_path_buf(), "tf", ".terraform");
     let mut json = Vec::new();
     for file in files {
         let contents = std::fs::read_to_string(&file).unwrap();

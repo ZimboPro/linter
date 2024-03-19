@@ -5,8 +5,8 @@ mod adapter_impl;
 mod edges;
 mod entrypoints;
 mod properties;
+mod utils;
 mod vertex;
-mod utils; 
 
 #[cfg(test)]
 mod tests;
@@ -14,19 +14,17 @@ mod tests;
 pub use adapter_impl::OpenApiAdapter;
 pub use vertex::Vertex;
 
-
 #[derive(Debug, Default, Serialize, Deserialize)]
 pub struct AvailableFiles {
-    pub files: Vec<FilteredFile>
+    pub files: Vec<FilteredFile>,
 }
 
 #[derive(Debug, Default, Serialize, Deserialize)]
 pub struct FilteredFile {
     pub name: String,
     pub path: std::path::PathBuf,
-    pub contents: String
+    pub contents: String,
 }
-
 
 #[derive(Debug, Default, Serialize, Deserialize)]
 pub struct Files {

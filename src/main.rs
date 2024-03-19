@@ -1,4 +1,8 @@
-use std::{collections::BTreeMap, path::PathBuf, sync::Arc};
+use std::{
+    collections::BTreeMap,
+    path::{Path, PathBuf},
+    sync::Arc,
+};
 
 use anyhow::Ok;
 use clap::Parser;
@@ -8,7 +12,7 @@ use linter::{
     openapi::adapter::OpenApiAdapter,
     util::{from_field_value, from_json_value},
 };
-use serde::Deserialize;
+
 use simplelog::{
     error, info, warn, Color, ColorChoice, ConfigBuilder, Level, LevelFilter, TermLogger,
     TerminalMode,
@@ -72,7 +76,7 @@ fn lint_main(args: Args) -> anyhow::Result<()> {
 fn merge_lint_files(configs: &Vec<PathBuf>) -> anyhow::Result<linter::config::model::Config> {
     let mut merged_configs = linter::config::model::Config::default();
     for config in configs {
-        let config = std::fs::read_to_string(&config).expect("could not read config file");
+        let config = std::fs::read_to_string(config).expect("could not read config file");
         let config: linter::config::model::Config =
             serde_yaml::from_str(&config).expect("could not parse config file");
         if let Err(e) = config.validate() {
@@ -92,7 +96,7 @@ fn merge_lint_files(configs: &Vec<PathBuf>) -> anyhow::Result<linter::config::mo
     Ok(merged_configs)
 }
 
-fn lint_terraform_and_api(tf: &PathBuf, api: &PathBuf, lints: &Vec<Lint>) -> anyhow::Result<()> {
+fn lint_terraform_and_api(tf: &PathBuf, api: &Path, lints: &Vec<Lint>) -> anyhow::Result<()> {
     let hcl_adapter = Arc::new(HclAdapter::new(tf));
     let hcl_schema = HclAdapter::schema();
     let oa_adapter = Arc::new(OpenApiAdapter::new(api.to_path_buf()));

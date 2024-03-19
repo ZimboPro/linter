@@ -1,9 +1,8 @@
+use extism_pdk::*;
 use merge_yaml_hash::MergeYamlHash;
 use openapiv3::{Operation, PathItem};
 use serde::{Deserialize, Serialize};
 use std::{ffi::OsStr, io::Read, path::PathBuf};
-use extism_pdk::*;
-
 
 pub fn merge(files: Vec<String>) -> String {
     let mut hash = MergeYamlHash::new();

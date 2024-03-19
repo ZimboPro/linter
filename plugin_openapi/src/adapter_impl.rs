@@ -1,7 +1,4 @@
-use std::{
-    path::PathBuf,
-    sync::{Arc, OnceLock},
-};
+use std::sync::{Arc, OnceLock};
 
 use trustfall::{
     provider::{
@@ -36,7 +33,7 @@ impl OpenApiAdapter {
     }
 
     pub fn new(files: AvailableFiles) -> Self {
-        let mut files_content: Vec<String> = files.files.iter().map(|x| x.contents.clone()).collect();
+        let files_content: Vec<String> = files.files.iter().map(|x| x.contents.clone()).collect();
         let merged_content = merge(files_content);
         let openapi = serde_yaml::from_str(&merged_content).unwrap();
 

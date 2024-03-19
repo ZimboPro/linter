@@ -1,5 +1,4 @@
 use sha256::digest;
-use std::os::windows::fs::MetadataExt;
 
 use trustfall::{
     provider::{
@@ -35,7 +34,11 @@ pub(super) fn resolve_file_property<'a, V: AsVertex<Vertex> + 'a>(
         "size" => resolve_property_with(contexts, |vertex: &Vertex| match vertex {
             Vertex::File(path) => {
                 // if path.is_file() {
-                path.metadata().unwrap().file_size().into()
+                path.metadata().unwrap().len().into()
+                // if cfg!(target_os = "windows") {
+                // } else {
+                //     path.metadata().unwrap().size()
+                // }
                 // }
             }
             _ => unreachable!(),
