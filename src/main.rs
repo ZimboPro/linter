@@ -6,6 +6,7 @@ use std::{
 
 use anyhow::Ok;
 use clap::Parser;
+use extism::{Manifest, Plugin, Wasm};
 use linter::{
     config::model::Lint,
     hcl::adapter::HclAdapter,
@@ -64,7 +65,10 @@ fn lint_main(args: Args) -> anyhow::Result<()> {
         std::process::exit(1);
     }
     if let Some(api) = &args.api {
-        lint_terraform_and_api(&args.terraform, api, &merged_configs.lints)?;
+        // lint_terraform_and_api(&args.terraform, api, &merged_configs.lints)?;
+        let wasm = Wasm::file("./target/wasm32-wasi/debug/plugin-openapi.wasm");
+        let manifest = Manifest::new([wasm]).with_allowed_path(src, dest);
+        let mut plugin = Plugin::new(&manifest, [], true).unwrap();
     } else {
         lint_terraform(&args.terraform, &merged_configs.lints)?;
     }
