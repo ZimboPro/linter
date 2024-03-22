@@ -14,13 +14,18 @@ use linter::{
     util::{from_field_value, from_json_value},
 };
 
+use figment::{
+    providers::{Env, Format, Serialized, Yaml},
+    Figment,
+};
+use serde::{Deserialize, Serialize};
 use simplelog::{
     error, info, warn, Color, ColorChoice, ConfigBuilder, Level, LevelFilter, TermLogger,
     TerminalMode,
 };
 use trustfall::{execute_query, FieldValue};
 
-#[derive(Debug, Parser)]
+#[derive(Debug, Parser, Serialize, Deserialize)]
 pub struct Args {
     /// Config files with lint queries
     #[clap(short, long)]
@@ -30,10 +35,21 @@ pub struct Args {
     pub terraform: PathBuf,
     /// OpenAPI file or folder containing OpenAPI files
     #[clap(short, long)]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub api: Option<PathBuf>,
     /// Verbose mode
     #[clap(short, long)]
     pub verbose: bool,
+}
+
+// Based off article https://steezeburger.com/2023/03/rust-hierarchical-configuration/
+fn figment_layered_impl() -> anyhow::Result<Args> {
+    let conf: Args = Figment::new()
+        .merge(Yaml::file("linter.yaml"))
+        .merge(Env::prefixed("APP_"))
+        .merge(Serialized::defaults(Args::parse()))
+        .extract()?;
+    Ok(conf)
 }
 
 fn main() -> anyhow::Result<()> {

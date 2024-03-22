@@ -20,6 +20,7 @@ eula = false
 anyhow = "1.0.80"
 clap = { version = "4.5.2", features = ["derive"] }
 extism = "1.2.0"
+figment = { version = "0.10.15", features = ["env", "yaml"] }
 hcl-rs = "0.16.7"
 merge-yaml-hash = "0.3.0"
 openapiv3 = "2.0.0"
