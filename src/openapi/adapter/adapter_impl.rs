@@ -82,12 +82,7 @@ impl OpenApiAdapter {
     }
 
     fn tags<'a>(&self) -> VertexIterator<'a, Vertex> {
-        let iter = self
-            .openapi
-            .tags
-            .clone()
-            .into_iter()
-            .map(Vertex::Tag);
+        let iter = self.openapi.tags.clone().into_iter().map(Vertex::Tag);
         Box::new(iter)
         // Vertex::Tags(self.openapi.tags.clone())
     }

@@ -10,8 +10,6 @@ use trustfall::{
     FieldValue, Schema,
 };
 
-use crate::AvailableFiles;
-
 use super::{
     utils::{merge, Route},
     vertex::Vertex,
@@ -36,8 +34,8 @@ impl OpenApiAdapter {
     pub fn new() -> Self {
         let path = std::path::Path::new("contents");
         let openapi = if path.is_dir() {
-            let mut files = find_files(&path, "yaml".as_ref());
-            files.extend(find_files(&path, "yml".as_ref()));
+            let mut files = find_files(path, "yaml".as_ref());
+            files.extend(find_files(path, "yml".as_ref()));
             let mut files_content = Vec::new();
             for file in files {
                 files_content.push(open_file(file));

@@ -1,11 +1,8 @@
-use std::{
-    collections::BTreeMap,
-    sync::{Arc, OnceLock},
-};
-use trustfall::{execute_query, FieldValue};
+use std::sync::{Arc, OnceLock};
+use trustfall::execute_query;
 
 use extism_pdk::*;
-use plugin_core::{convert_to_args, from_field_value, from_json_value, Lint, PluginErrors};
+use plugin_core::{convert_to_args, from_field_value, Lint, PluginErrors};
 use serde::{Deserialize, Serialize};
 
 mod adapter_impl;

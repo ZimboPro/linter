@@ -10,7 +10,6 @@ use extism::{convert::Json, Manifest, Plugin, Wasm};
 use linter::{
     config::model::Lint,
     hcl::adapter::HclAdapter,
-    openapi::adapter::OpenApiAdapter,
     util::{from_field_value, from_json_value},
 };
 
@@ -146,7 +145,7 @@ fn lint_terraform_and_api(tf: &PathBuf, api: &Path, lints: &Vec<Lint>) -> anyhow
     // let oa_schema = OpenApiAdapter::schema();
     let wasm = Wasm::file("./target/wasm32-wasi/debug/plugin_openapi.wasm");
     let manifest = Manifest::new([wasm]).with_allowed_path(api, "contents");
-    let mut plugin = Plugin::new(&manifest, [], true).unwrap();
+    let mut plugin = Plugin::new(manifest, [], true).unwrap();
     let res = plugin.call::<Option<&str>, ()>("new", None);
     if res.is_err() {
         return Err(anyhow::anyhow!("Failed to initialize plugin"));
@@ -155,7 +154,7 @@ fn lint_terraform_and_api(tf: &PathBuf, api: &Path, lints: &Vec<Lint>) -> anyhow
     let mut passes = true;
 
     for lint in lints {
-        if let (Some(terraform), Some(openapi)) = (&lint.terraform, &lint.api) {
+        if let (Some(terraform), Some(_openapi)) = (&lint.terraform, &lint.api) {
             let variables: BTreeMap<Arc<str>, FieldValue> = if !lint.tf_args.is_empty() {
                 let v = lint
                     .tf_args
@@ -182,7 +181,7 @@ fn lint_terraform_and_api(tf: &PathBuf, api: &Path, lints: &Vec<Lint>) -> anyhow
                     .collect();
                 terraform_lint.push(transparent);
             }
-            let variables: BTreeMap<Arc<str>, FieldValue> = if !lint.oa_args.is_empty() {
+            let _variables: BTreeMap<Arc<str>, FieldValue> = if !lint.oa_args.is_empty() {
                 let v = lint
                     .oa_args
                     .iter()
@@ -212,7 +211,7 @@ fn lint_terraform_and_api(tf: &PathBuf, api: &Path, lints: &Vec<Lint>) -> anyhow
             let mut invalid_result: Vec<serde_json::Value> = Vec::new();
 
             for result in &terraform_lint {
-                if !openapi_lint.contains(&result) {
+                if !openapi_lint.contains(result) {
                     invalid_result.push(result.clone());
                 }
             }
