@@ -1,5 +1,6 @@
 use std::sync::{Arc, OnceLock};
 
+use plugin_core::{find_files, open_file};
 use trustfall::{
     provider::{
         resolve_coercion_using_schema, resolve_property_with, AsVertex, ContextIterator,
@@ -32,10 +33,24 @@ impl OpenApiAdapter {
         SCHEMA.get_or_init(|| Schema::parse(Self::SCHEMA_TEXT).expect("not a valid schema"))
     }
 
-    pub fn new(files: AvailableFiles) -> Self {
-        let files_content: Vec<String> = files.files.iter().map(|x| x.contents.clone()).collect();
-        let merged_content = merge(files_content);
-        let openapi = serde_yaml::from_str(&merged_content).unwrap();
+    pub fn new() -> Self {
+        let path = std::path::Path::new("contents");
+        let openapi = if path.is_dir() {
+            let mut files = find_files(&path, "yaml".as_ref());
+            files.extend(find_files(&path, "yml".as_ref()));
+            let mut files_content = Vec::new();
+            for file in files {
+                files_content.push(open_file(file));
+            }
+            let merged_content = merge(files_content);
+            serde_yaml::from_str(&merged_content).unwrap()
+        } else if path.is_file() {
+            let file = std::fs::File::open(path).expect("failed to open file");
+            let reader = std::io::BufReader::new(file);
+            serde_yaml::from_reader(reader).expect("failed to parse OpenAPI file")
+        } else {
+            panic!("Path: {:?} is not a file or directory", path)
+        };
 
         Self { openapi }
     }
