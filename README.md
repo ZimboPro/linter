@@ -62,13 +62,17 @@ is an error. For e.g. return any data where the tags are not set
 ## Plugins
 
 This is list of available plugins or to be developed:
- - [ ] OpenAPI
- - [ ] Terraform
- - [ ] NPM package.json
- - [ ] Flutter pubspec.yaml
- - [ ] Cargo Toml
- - [ ] Github Actions
- - [ ] File-system
+- [ ] OpenAPI
+  - [x] Initial implementation
+  - [ ] Improve custom extensions
+  - [ ] Document plugin
+  - [ ] Example lints
+- [ ] Terraform
+- [ ] NPM package.json
+- [ ] Flutter pubspec.yaml
+- [ ] Cargo Toml
+- [ ] Github Actions
+- [ ] File-system
 
 ## Acknowledgements
 
