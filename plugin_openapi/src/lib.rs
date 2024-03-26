@@ -7,7 +7,6 @@ use serde::{Deserialize, Serialize};
 
 mod adapter_impl;
 mod edges;
-mod entrypoints;
 mod properties;
 mod utils;
 mod vertex;
