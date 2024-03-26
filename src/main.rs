@@ -6,7 +6,7 @@ use std::{
 
 use anyhow::Ok;
 use clap::Parser;
-use extism::{Manifest, Plugin, Wasm};
+use extism::{convert::Json, Manifest, Plugin, Wasm};
 use linter::{
     config::model::Lint,
     hcl::adapter::HclAdapter,
@@ -42,11 +42,33 @@ pub struct Args {
     pub verbose: bool,
 }
 
+impl Args {
+    pub fn validate(&self) -> anyhow::Result<()> {
+        if !self.terraform.exists() {
+            return Err(anyhow::anyhow!("Terraform folder does not exist"));
+        }
+        if let Some(api) = &self.api {
+            if !api.exists() {
+                return Err(anyhow::anyhow!("OpenAPI file does not exist"));
+            }
+        }
+        // if self.terraform.is_none() && self.api.is_none() {
+        //     return Err(anyhow::anyhow!("Either terraform or api file must be provided"));
+        // }
+        for config in &self.config {
+            if !config.exists() {
+                return Err(anyhow::anyhow!("Config file does not exist"));
+            }
+        }
+        Ok(())
+    }
+}
+
 // Based off article https://steezeburger.com/2023/03/rust-hierarchical-configuration/
 fn figment_layered_impl() -> anyhow::Result<Args> {
     let conf: Args = Figment::new()
         .merge(Yaml::file("linter.yaml"))
-        .merge(Env::prefixed("APP_"))
+        .merge(Env::prefixed("LINTER_"))
         .merge(Serialized::defaults(Args::parse()))
         .extract()?;
     Ok(conf)
@@ -81,10 +103,11 @@ fn lint_main(args: Args) -> anyhow::Result<()> {
         std::process::exit(1);
     }
     if let Some(api) = &args.api {
-        // lint_terraform_and_api(&args.terraform, api, &merged_configs.lints)?;
-        let wasm = Wasm::file("./target/wasm32-wasi/debug/plugin-openapi.wasm");
-        let manifest = Manifest::new([wasm]).with_allowed_path(src, dest);
-        let mut plugin = Plugin::new(&manifest, [], true).unwrap();
+        lint_terraform_and_api(&args.terraform, api, &merged_configs.lints)?;
+        // let wasm = Wasm::file("./target/wasm32-wasi/debug/plugin-openapi.wasm");
+        // let manifest = Manifest::new([wasm]).with_allowed_path(api, "contents");
+        // let mut plugin = Plugin::new(&manifest, [], true).unwrap();
+        // let manifest = Manifest::new([wasm]);
     } else {
         lint_terraform(&args.terraform, &merged_configs.lints)?;
     }
@@ -119,8 +142,15 @@ fn merge_lint_files(configs: &Vec<PathBuf>) -> anyhow::Result<linter::config::mo
 fn lint_terraform_and_api(tf: &PathBuf, api: &Path, lints: &Vec<Lint>) -> anyhow::Result<()> {
     let hcl_adapter = Arc::new(HclAdapter::new(tf));
     let hcl_schema = HclAdapter::schema();
-    let oa_adapter = Arc::new(OpenApiAdapter::new(api.to_path_buf()));
-    let oa_schema = OpenApiAdapter::schema();
+    // let oa_adapter = Arc::new(OpenApiAdapter::new(api.to_path_buf()));
+    // let oa_schema = OpenApiAdapter::schema();
+    let wasm = Wasm::file("./target/wasm32-wasi/debug/plugin_openapi.wasm");
+    let manifest = Manifest::new([wasm]).with_allowed_path(api, "contents");
+    let mut plugin = Plugin::new(&manifest, [], true).unwrap();
+    let res = plugin.call::<Option<&str>, ()>("new", None);
+    if res.is_err() {
+        return Err(anyhow::anyhow!("Failed to initialize plugin"));
+    }
 
     let mut passes = true;
 
@@ -163,32 +193,39 @@ fn lint_terraform_and_api(tf: &PathBuf, api: &Path, lints: &Vec<Lint>) -> anyhow
             } else {
                 BTreeMap::new()
             };
-            let mut openapi_lint = Vec::new();
-            for data_item in
-                execute_query(oa_schema, oa_adapter.clone(), openapi, variables.clone())
-                    .expect("not a legal query")
-            {
-                let transparent: serde_json::Value = data_item
-                    .into_iter()
-                    .map(|(k, v)| (k.to_string(), from_field_value(&v)))
-                    .collect();
-                openapi_lint.push(transparent);
+            // let mut openapi_lint = Vec::new();
+            // for data_item in
+            //     execute_query(oa_schema, oa_adapter.clone(), openapi, variables.clone())
+            //         .expect("not a legal query")
+            // {
+            //     let transparent: serde_json::Value = data_item
+            //         .into_iter()
+            //         .map(|(k, v)| (k.to_string(), from_field_value(&v)))
+            //         .collect();
+            //     openapi_lint.push(transparent);
+            // }
+            let result = plugin.call::<Json<plugin_core::Lint>, String>(
+                "lint_single",
+                Json(lint.convert_to_oai_lint().unwrap()),
+            )?;
+            let openapi_lint: Vec<serde_json::Value> = serde_json::from_str(&result)?;
+            let mut invalid_result: Vec<serde_json::Value> = Vec::new();
+
+            for result in &terraform_lint {
+                if !openapi_lint.contains(&result) {
+                    invalid_result.push(result.clone());
+                }
             }
-            let tf = terraform_lint
-                .iter()
-                .all(|item| openapi_lint.contains(item));
-            let oa = openapi_lint
-                .iter()
-                .all(|item| terraform_lint.contains(item));
-            if !tf || !oa {
+            for result in openapi_lint {
+                if !terraform_lint.contains(&result) {
+                    invalid_result.push(result.clone());
+                }
+            }
+            if !invalid_result.is_empty() {
                 error!("Check failed: {}", lint.name);
                 println!(
                     "\nTerraform results {}",
-                    serde_json::to_string_pretty(&terraform_lint).unwrap()
-                );
-                println!(
-                    "\nOpenAPI results {}",
-                    serde_json::to_string_pretty(&openapi_lint).unwrap()
+                    serde_json::to_string_pretty(&invalid_result).unwrap()
                 );
                 passes = false;
             }
@@ -223,28 +260,33 @@ fn lint_terraform_and_api(tf: &PathBuf, api: &Path, lints: &Vec<Lint>) -> anyhow
                 error!("Check failed: {} {:#?}", lint.name, terraform_lint);
                 passes = false;
             }
-        } else if let Some(api) = &lint.api {
-            let variables: BTreeMap<Arc<str>, FieldValue> = if !lint.oa_args.is_empty() {
-                let v = lint
-                    .oa_args
-                    .iter()
-                    .map(|(k, v)| (Arc::from(k.as_str()), from_json_value(v)))
-                    .collect();
+        } else if let Some(_api) = &lint.api {
+            // let variables: BTreeMap<Arc<str>, FieldValue> = if !lint.oa_args.is_empty() {
+            //     let v = lint
+            //         .oa_args
+            //         .iter()
+            //         .map(|(k, v)| (Arc::from(k.as_str()), from_json_value(v)))
+            //         .collect();
 
-                v
-            } else {
-                BTreeMap::new()
-            };
-            let mut api_lint = Vec::new();
-            for data_item in execute_query(oa_schema, oa_adapter.clone(), api, variables.clone())
-                .expect("not a legal query")
-            {
-                let transparent: serde_json::Value = data_item
-                    .into_iter()
-                    .map(|(k, v)| (k.to_string(), from_field_value(&v)))
-                    .collect();
-                api_lint.push(transparent);
-            }
+            //     v
+            // } else {
+            //     BTreeMap::new()
+            // };
+            // let mut api_lint = Vec::new();
+            // for data_item in execute_query(oa_schema, oa_adapter.clone(), api, variables.clone())
+            //     .expect("not a legal query")
+            // {
+            //     let transparent: serde_json::Value = data_item
+            //         .into_iter()
+            //         .map(|(k, v)| (k.to_string(), from_field_value(&v)))
+            //         .collect();
+            //     api_lint.push(transparent);
+            // }
+            let result = plugin.call::<Json<plugin_core::Lint>, String>(
+                "lint_single",
+                Json(lint.convert_to_oai_lint().unwrap()),
+            )?;
+            let api_lint: Vec<serde_json::Value> = serde_json::from_str(&result)?;
             if !api_lint.is_empty() {
                 error!("Check failed: {} {:#?}", lint.name, api_lint);
                 passes = false;

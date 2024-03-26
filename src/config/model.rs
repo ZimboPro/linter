@@ -47,6 +47,18 @@ impl Lint {
         }
         Ok(())
     }
+
+    pub fn convert_to_oai_lint(&self) -> Option<plugin_core::Lint> {
+        if let Some(api) = &self.api {
+            Some(plugin_core::Lint {
+                name: self.name.clone(),
+                lint: api.clone(),
+                args: self.oa_args.clone(),
+            })
+        } else {
+            None
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -1253,6 +1253,7 @@ dependencies = [
  "hcl-rs",
  "merge-yaml-hash",
  "openapiv3",
+ "plugin_core",
  "serde",
  "serde_json",
  "serde_yaml",
@@ -1530,12 +1531,23 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d231b230927b5e4ad203db57bbcbee2802f6bce620b1e4a9024a07d94e2907ec"
 
 [[package]]
+name = "plugin_core"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "thiserror",
+ "trustfall",
+]
+
+[[package]]
 name = "plugin_openapi"
 version = "0.1.0"
 dependencies = [
  "extism-pdk",
  "merge-yaml-hash",
  "openapiv3",
+ "plugin_core",
  "serde",
  "serde_json",
  "serde_yaml",
@@ -1893,9 +1905,9 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-version = "1.0.114"
+version = "1.0.115"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c5f09b1bd632ef549eaa9f60a1f8de742bdbc698e6cee2095fc84dde5f549ae0"
+checksum = "12dc5c46daa8e9fdf4f5e71b6cf9a53f2487da0e86e55808e2d35539666497dd"
 dependencies = [
  "itoa",
  "ryu",

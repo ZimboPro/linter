@@ -30,6 +30,7 @@ serde_yaml = "0.9.32"
 sha256 = "1.5.0"
 simplelog = { version = "0.12.2", features = ["paris"] }
 trustfall = "0.7.1"
+plugin_core = { path = "./plugin_core" }
 
 # The profile that 'cargo dist' will build with
 [profile.dist]
@@ -45,7 +46,7 @@ codegen-units = 1
 panic = "abort"
 
 [workspace]
-members = ["plugin_openapi"]
+members = ["plugin_core", "plugin_openapi"]
 # panic = "abort"
 
 # Config for 'cargo dist'
