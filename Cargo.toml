@@ -19,8 +19,8 @@ eula = false
 [dependencies]
 anyhow = "1.0.80"
 clap = { version = "4.5.2", features = ["derive"] }
-hcl-rs = "0.16.7"
-merge-yaml-hash = "0.3.0"
+hcl-rs = "0.16.8"
+merge-yaml-hash = { git = "https://github.com/ZimboPro/merge-yaml-hash" }
 openapiv3 = "2.0.0"
 serde = { version = "1.0.197", features = ["derive"] }
 serde_json = "1.0.114"
@@ -28,7 +28,7 @@ serde_yaml = "0.9.32"
 sha256 = "1.5.0"
 simplelog = { version = "0.12.2", features = ["paris"] }
 trustfall = "0.7.1"
-yaml-rust = "0.4.5"
+yaml-rust2 = "0.8.0"
 
 # The profile that 'cargo dist' will build with
 [profile.dist]
