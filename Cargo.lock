@@ -1555,6 +1555,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "plugin_terraform"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "extism-pdk",
+ "hcl-rs",
+ "plugin_core",
+ "serde",
+ "serde_json",
+ "trustfall",
+]
+
+[[package]]
 name = "powerfmt"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"

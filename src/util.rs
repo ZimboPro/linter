@@ -59,7 +59,7 @@ pub fn find_files_ignore_dir(path: PathBuf, extension: &str, folder: &str) -> Ve
     for entries in path.read_dir().expect("Failed to get dir contents") {
         if let Ok(entry) = entries {
             if entry.path().is_dir() && !entry.path().ends_with(folder) {
-                files.extend(find_files(entry.path(), extension));
+                files.extend(find_files_ignore_dir(entry.path(), extension, folder));
             } else if entry.path().is_file()
                 && entry.path().extension() == Some(OsStr::new(extension))
             {

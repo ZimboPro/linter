@@ -25,7 +25,7 @@ mod api_config {
         VertexIterator,
     };
 
-    use crate::hcl::adapter::model::ApiConfig;
+    use crate::model::ApiConfig;
 
     use super::super::vertex::Vertex;
 
@@ -68,7 +68,7 @@ mod lambda {
         VertexIterator,
     };
 
-    use crate::hcl::adapter::model::Lambda;
+    use crate::model::Lambda;
 
     use super::super::vertex::Vertex;
 
@@ -111,7 +111,7 @@ mod module {
         VertexIterator,
     };
 
-    use crate::hcl::adapter::model::Module;
+    use crate::model::Module;
 
     use super::super::vertex::Vertex;
 
@@ -150,7 +150,7 @@ mod template_variable {
         VertexIterator,
     };
 
-    use crate::hcl::adapter::model::TemplateVariable;
+    use crate::model::TemplateVariable;
 
     use super::super::vertex::Vertex;
 
@@ -191,7 +191,7 @@ mod terraform {
         VertexIterator,
     };
 
-    use crate::hcl::adapter::model::Terraform;
+    use crate::model::Terraform;
 
     use super::super::vertex::Vertex;
 

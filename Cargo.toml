@@ -46,7 +46,7 @@ codegen-units = 1
 panic = "abort"
 
 [workspace]
-members = ["plugin_core", "plugin_openapi"]
+members = ["plugin_core", "plugin_openapi", "plugin_terraform"]
 # panic = "abort"
 
 # Config for 'cargo dist'

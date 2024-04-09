@@ -1,9 +1,9 @@
 use std::path::Path;
 
+// TODO change this to explicit errors
 use anyhow::anyhow;
-use simplelog::{debug, error};
-
-use crate::util::find_files_ignore_dir;
+use extism_pdk::{debug, error};
+use plugin_core::find_files_ignore_dir;
 
 use super::model::{
     ApiConfig, Backend, Lambda, Module, RequiredProvider, TemplateVariable, Terraform, Variable,
