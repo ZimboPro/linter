@@ -17,16 +17,14 @@ eula = false
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-
-plugin_core = { path = "./plugin_core" }
-
-# The profile that 'cargo dist' will build withanyhow = "1.0.80"
+anyhow = "1.0.81"
 clap = { version = "4.5.4", features = ["derive"] }
 extism = "1.2.0"
 figment = { version = "0.10.15", features = ["env", "yaml"] }
 hcl-rs = "0.16.8"
 merge-yaml-hash = { git = "https://github.com/ZimboPro/merge-yaml-hash" }
 openapiv3 = "2.0.0"
+plugin_core = { path = "./plugin_core" }
 serde = { version = "1.0.197", features = ["derive"] }
 serde_json = "1.0.115"
 serde_yaml = "0.9.34"
@@ -35,6 +33,7 @@ simplelog = { version = "0.12.2", features = ["paris"] }
 trustfall = "0.7.1"
 yaml-rust2 = "0.8.0"
 
+# The profile that 'cargo dist' will build with
 [profile.dist]
 inherits = "release"
 lto = "thin"
