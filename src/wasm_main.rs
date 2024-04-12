@@ -1,6 +1,5 @@
 use std::{collections::HashMap, path::PathBuf};
 
-use clap::Parser;
 use extism::{convert::Json, Manifest, Plugin, Wasm};
 use serde::{Deserialize, Serialize};
 use simplelog::{error, warn};

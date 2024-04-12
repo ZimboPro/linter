@@ -1,4 +1,4 @@
 path: target/wasm32-wasi/debug/plugin_openapi.wasm
-directory: ../../olympus/service-operations-services/faq/apis/
+directory: ../dir/containing/openapi/files
 lints_paths:
   - lints/open_api_lints.yaml

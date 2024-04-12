@@ -108,7 +108,7 @@ fn run_lint(
         }
         Err(e) => {
             error!("Error in the plugin running lint: {}", lint.name);
-            Err(PluginErrors::PluginError(e.to_string()).into())
+            Err(PluginErrors::PluginError(e.to_string()))
         }
     }
 }
@@ -118,7 +118,7 @@ pub fn lint_single(Json(lint): Json<Lint>) -> FnResult<String> {
     let adapter = ADAPTER.get().expect("adapter not initialized").clone();
     let schema = OpenApiAdapter::schema();
 
-    match run_lint(lint, &adapter, &schema) {
+    match run_lint(lint, &adapter, schema) {
         Ok(lint_results) => Ok(serde_json::to_string(&lint_results)?),
         Err(e) => Err(e.into()),
     }

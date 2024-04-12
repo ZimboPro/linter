@@ -1,16 +1,8 @@
-use std::{
-    collections::BTreeMap,
-    path::{Path, PathBuf},
-    sync::Arc,
-};
+use std::path::PathBuf;
 
 use anyhow::Ok;
-use clap::{Args, Parser};
-use extism::{convert::Json, Manifest, Plugin, Wasm};
-use linter::{
-    config::model::Lint,
-    util::{from_field_value, from_json_value},
-};
+use clap::Parser;
+
 mod wasm_main;
 
 use figment::{
@@ -18,11 +10,8 @@ use figment::{
     Figment,
 };
 use serde::{Deserialize, Serialize};
-use simplelog::{
-    error, info, warn, Color, ColorChoice, ConfigBuilder, Level, LevelFilter, TermLogger,
-    TerminalMode,
-};
-use trustfall::{execute_query, FieldValue};
+use simplelog::{Color, ColorChoice, ConfigBuilder, Level, LevelFilter, TermLogger, TerminalMode};
+
 use wasm_main::wasm_main;
 
 #[derive(Debug, Parser, Serialize, Deserialize)]
