@@ -1,5 +1,5 @@
 use std::sync::{Arc, OnceLock};
-use trustfall::execute_query;
+use trustfall::{execute_query, Schema};
 
 use extism_pdk::*;
 use plugin_core::{convert_to_args, from_field_value, Lint, PluginErrors};
@@ -59,21 +59,25 @@ pub fn lint_all(Json(lints): Json<Vec<Lint>>) -> FnResult<()> {
     let mut passes = true;
     let schema = OpenApiAdapter::schema();
     for lint in lints {
-        let variables = convert_to_args(lint.args);
-
-        let mut terraform_lint = Vec::new();
-        for data_item in execute_query(schema, adapter.clone().to_owned(), &lint.lint, variables)
-            .expect("not a legal query")
-        {
-            let transparent: serde_json::Value = data_item
-                .into_iter()
-                .map(|(k, v)| (k.to_string(), from_field_value(&v)))
-                .collect();
-            terraform_lint.push(transparent);
-        }
-        if !terraform_lint.is_empty() {
-            error!("Check failed: {} {:#?}", lint.name, terraform_lint);
-            passes = false;
+        match run_lint(lint.clone(), &adapter, schema) {
+            Ok(terraform_lint) => {
+                if !terraform_lint.is_empty() {
+                    match lint.output {
+                        plugin_core::LintResult::Warning(ref message) => {
+                            warn!("{}", message);
+                        }
+                        plugin_core::LintResult::Error(ref message) => {
+                            error!("{}", message);
+                            passes = false;
+                        }
+                    }
+                    println!("{}", serde_json::to_string_pretty(&terraform_lint).unwrap());
+                }
+            }
+            Err(e) => {
+                error!("Error in the plugin running lint: {}", e);
+                return Err(e.into());
+            }
         }
     }
     if passes {
@@ -83,20 +87,39 @@ pub fn lint_all(Json(lints): Json<Vec<Lint>>) -> FnResult<()> {
     }
 }
 
+fn run_lint(
+    lint: Lint,
+    adapter: &Arc<OpenApiAdapter>,
+    schema: &Schema,
+) -> Result<Vec<serde_json::Value>, PluginErrors> {
+    let variables = convert_to_args(lint.args);
+    let mut lint_results = Vec::new();
+    let iter_result = execute_query(schema, adapter.clone().to_owned(), &lint.lint, variables);
+    match iter_result {
+        Ok(iter) => {
+            for data_item in iter {
+                let transparent: serde_json::Value = data_item
+                    .into_iter()
+                    .map(|(k, v)| (k.to_string(), from_field_value(&v)))
+                    .collect();
+                lint_results.push(transparent);
+            }
+            Ok(lint_results)
+        }
+        Err(e) => {
+            error!("Error in the plugin running lint: {}", lint.name);
+            Err(PluginErrors::PluginError(e.to_string()).into())
+        }
+    }
+}
+
 #[plugin_fn]
 pub fn lint_single(Json(lint): Json<Lint>) -> FnResult<String> {
     let adapter = ADAPTER.get().expect("adapter not initialized").clone();
     let schema = OpenApiAdapter::schema();
-    let variables = convert_to_args(lint.args);
-    let mut lint_results = Vec::new();
-    for data_item in execute_query(schema, adapter.clone().to_owned(), &lint.lint, variables)
-        .expect("not a legal query")
-    {
-        let transparent: serde_json::Value = data_item
-            .into_iter()
-            .map(|(k, v)| (k.to_string(), from_field_value(&v)))
-            .collect();
-        lint_results.push(transparent);
+
+    match run_lint(lint, &adapter, &schema) {
+        Ok(lint_results) => Ok(serde_json::to_string(&lint_results)?),
+        Err(e) => Err(e.into()),
     }
-    Ok(serde_json::to_string(&lint_results)?)
 }
