@@ -53,6 +53,7 @@ impl Lint {
             name: self.name.clone(),
             lint: api.clone(),
             args: self.oa_args.clone(),
+            output: plugin_core::LintResult::Error(self.error.clone()),
         })
     }
 }

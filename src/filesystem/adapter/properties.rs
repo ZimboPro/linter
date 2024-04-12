@@ -20,11 +20,11 @@ pub(super) fn resolve_file_property<'a, V: AsVertex<Vertex> + 'a>(
                 let bytes = std::fs::read(path).unwrap();
                 digest(bytes).into()
             }
-            _ => unreachable!(),
+            _ => unreachable!("Should be Hash"),
         }),
         "extension" => resolve_property_with(contexts, |vertex: &Vertex| match vertex {
             Vertex::File(path) => path.extension().unwrap().to_str().unwrap().into(),
-            _ => unreachable!(),
+            _ => unreachable!("Should be extension"),
         }),
         "path" => resolve_property_with(contexts, |vertex: &Vertex| match vertex {
             Vertex::File(path) => path.to_str().unwrap().into(),
@@ -41,7 +41,7 @@ pub(super) fn resolve_file_property<'a, V: AsVertex<Vertex> + 'a>(
                 // }
                 // }
             }
-            _ => unreachable!(),
+            _ => unreachable!("Should be size"),
         }),
         _ => {
             unreachable!("attempted to read unexpected property '{property_name}' on type 'File'")
@@ -57,7 +57,7 @@ pub(super) fn resolve_folder_property<'a, V: AsVertex<Vertex> + 'a>(
     match property_name {
         "path" => resolve_property_with(contexts, |vertex: &Vertex| match vertex {
             Vertex::Folder(path) => path.to_str().unwrap().into(),
-            _ => unreachable!(),
+            _ => unreachable!("Should be path"),
         }),
         _ => {
             unreachable!("attempted to read unexpected property '{property_name}' on type 'Folder'")
@@ -73,7 +73,7 @@ pub(super) fn resolve_path_property<'a, V: AsVertex<Vertex> + 'a>(
     match property_name {
         "path" => resolve_property_with(contexts, |vertex: &Vertex| match vertex {
             Vertex::Path(path) => path.to_str().unwrap().into(),
-            _ => unreachable!(),
+            _ => unreachable!("Should be path"),
         }),
         _ => {
             unreachable!("attempted to read unexpected property '{property_name}' on type 'Path'")

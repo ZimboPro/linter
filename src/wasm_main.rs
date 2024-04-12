@@ -5,42 +5,21 @@ use extism::{convert::Json, Manifest, Plugin, Wasm};
 use serde::{Deserialize, Serialize};
 use simplelog::{error, warn};
 
-#[derive(Debug, Serialize, Deserialize, Parser, PartialEq, Eq)]
-enum LintMode {
-    Lint(CliPluginConfig),
-    // TODO able to compare outputs from 2 plugins
-    // Compare(ConfigArgs),
-}
-
-// #[derive(Debug, Default, Args, Clone, Serialize, Deserialize, PartialEq, Eq)]
-// struct ConfigArgs {
-//     #[clap(short, long)]
-//     plugin_1: PluginConfig,
-//     #[clap(short, long)]
-//     plugin_2: PluginConfig,
-//     // plugins: Vec<PluginConfig>,
-// }
-
-#[derive(Debug, Default, Parser, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq, Eq)]
 struct CliPluginConfig {
     /// Path to the plugin.
-    #[arg(short, long)]
     #[serde(skip_serializing_if = "Option::is_none")]
     path: Option<String>,
     /// Url to the plugin.
-    #[arg(short, long)]
     #[serde(skip_serializing_if = "Option::is_none")]
     url: Option<String>,
     /// Directory containing the files to be linted. Defaults to the current directory.
-    #[arg(short, long)]
     #[serde(skip_serializing_if = "Option::is_none")]
     directory: Option<PathBuf>,
     /// Paths to the lints files.
-    #[clap(short, long)]
     #[serde(skip_serializing_if = "Option::is_none")]
     lints_paths: Option<Vec<PathBuf>>,
     /// Urls to the lints files.
-    #[clap(short, long)]
     #[serde(skip_serializing_if = "Option::is_none")]
     urls: Option<Vec<String>>,
 }
@@ -115,6 +94,11 @@ impl LintData {
             name: self.name.clone(),
             lint: self.lint.clone(),
             args: self.args.clone(),
+            output: if self.warning.is_some() {
+                plugin_core::LintResult::Warning(self.warning.clone().unwrap())
+            } else {
+                plugin_core::LintResult::Error(self.error.clone().unwrap())
+            },
         })
     }
 
@@ -126,11 +110,21 @@ impl LintData {
                 name: self.name.clone(),
                 lint: self.lint.clone(),
                 args: self.args.clone(),
+                output: if self.warning.is_some() {
+                    plugin_core::LintResult::Warning(self.warning.clone().unwrap())
+                } else {
+                    plugin_core::LintResult::Error(self.error.clone().unwrap())
+                },
             },
             plugin_core::Lint {
                 name: self.name.clone(),
                 lint: self.compared_lint.clone()?,
                 args: self.compared_args.clone()?,
+                output: if self.warning.is_some() {
+                    plugin_core::LintResult::Warning(self.warning.clone().unwrap())
+                } else {
+                    plugin_core::LintResult::Error(self.error.clone().unwrap())
+                },
             },
         ))
     }
@@ -158,8 +152,8 @@ impl LintData {
     }
 }
 
-pub fn wasm_main() -> anyhow::Result<()> {
-    let args = CliPluginConfig::parse();
+pub fn wasm_main(config: PathBuf) -> anyhow::Result<()> {
+    let args: CliPluginConfig = serde_yaml::from_str(std::fs::read_to_string(config)?.as_str())?;
     let plugin_data = PluginData::from_cli_plugin_config(args)?;
     let lints = merge_lints(&plugin_data)?;
     let wasm = match plugin_data.plugin {
@@ -233,7 +227,7 @@ fn run_lints(lints: Vec<LintData>, mut plugin: Plugin) -> anyhow::Result<()> {
                     (Some(warn), None) => {
                         warn!("{}", warn);
                     }
-                    _ => unreachable!(),
+                    _ => unreachable!("Lint has both or no warning and error message"),
                 }
                 println!("{}", serde_json::to_string_pretty(&invalid_result).unwrap());
             }
@@ -241,20 +235,29 @@ fn run_lints(lints: Vec<LintData>, mut plugin: Plugin) -> anyhow::Result<()> {
             let result = plugin.call::<Json<plugin_core::Lint>, String>(
                 "lint_single",
                 Json(lint.convert_to_plugin_lint().unwrap()),
-            )?;
-            let lint_results: Vec<serde_json::Value> = serde_json::from_str(&result)?;
-            if !lint_results.is_empty() {
-                match (lint.warning, lint.error) {
-                    (None, Some(err)) => {
-                        error!("{}", err);
-                        passes = false;
+            );
+            match result {
+                Ok(result) => {
+                    let lint_results: Vec<serde_json::Value> = serde_json::from_str(&result)?;
+                    if !lint_results.is_empty() {
+                        match (lint.warning, lint.error) {
+                            (None, Some(err)) => {
+                                error!("{}", err);
+                                passes = false;
+                            }
+                            (Some(warn), None) => {
+                                warn!("{}", warn);
+                            }
+                            _ => unreachable!("Lint has both or no warning and error message"),
+                        }
+                        println!("{}", serde_json::to_string_pretty(&lint_results).unwrap());
                     }
-                    (Some(warn), None) => {
-                        warn!("{}", warn);
-                    }
-                    _ => unreachable!(),
                 }
-                println!("{}", serde_json::to_string_pretty(&lint_results).unwrap());
+                Err(err) => {
+                    error!("Error in the plugin running lint: {}", lint.name);
+                    error!("{}", err);
+                    passes = false;
+                }
             }
         }
     }

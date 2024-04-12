@@ -42,6 +42,57 @@ pub struct CliArgs {
     pub verbose: bool,
 }
 
+// enum LinterCommands {
+//     Lint(CLI),
+//     Test,
+//     Output,
+// }
+
+#[derive(Debug, Default, Parser, Serialize, Deserialize)]
+#[command(version, about, long_about = None)]
+pub struct CLI {
+    /// Verbose mode
+    #[clap(short, long)]
+    pub verbose: bool,
+    /// Config file to use. Defaults to linter_config.yaml
+    #[clap(short, long)]
+    pub config: Option<PathBuf>,
+    /// Directory containing files that need to be linted. Defaults to the current directory.
+    #[clap(short, long)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub dir: Option<PathBuf>,
+}
+
+struct FinalCli {
+    verbose: bool,
+    config: PathBuf,
+    dir: PathBuf,
+}
+
+impl FinalCli {
+    fn new(cli: CLI) -> anyhow::Result<Self> {
+        let config = cli
+            .config
+            .unwrap_or_else(|| PathBuf::from("linter_config.yaml"));
+        let dir = cli.dir.unwrap_or_else(|| std::env::current_dir().unwrap());
+        Ok(Self {
+            verbose: cli.verbose,
+            config,
+            dir,
+        })
+    }
+
+    fn validate(&self) -> anyhow::Result<()> {
+        if !self.config.exists() {
+            return Err(anyhow::anyhow!("Config file does not exist"));
+        }
+        if !self.dir.exists() {
+            return Err(anyhow::anyhow!("Directory does not exist"));
+        }
+        Ok(())
+    }
+}
+
 // impl CliArgs {
 //     pub fn validate(&self) -> anyhow::Result<()> {
 //         if !self.terraform.exists() {
@@ -65,17 +116,19 @@ pub struct CliArgs {
 // }
 
 // Based off article https://steezeburger.com/2023/03/rust-hierarchical-configuration/
-fn figment_layered_impl() -> anyhow::Result<CliArgs> {
-    let conf: CliArgs = Figment::new()
+fn figment_layered_impl() -> anyhow::Result<CLI> {
+    let conf: CLI = Figment::new()
         .merge(Yaml::file("linter.yaml"))
         .merge(Env::prefixed("LINTER_"))
-        .merge(Serialized::defaults(CliArgs::parse()))
+        .merge(Serialized::defaults(CLI::parse()))
         .extract()?;
     Ok(conf)
 }
 
 fn main() -> anyhow::Result<()> {
-    let args = CliArgs::parse();
+    let args = figment_layered_impl()?;
+    let args = FinalCli::new(args)?;
+    args.validate()?;
     let level = if args.verbose {
         LevelFilter::Debug
     } else {
@@ -91,7 +144,7 @@ fn main() -> anyhow::Result<()> {
         .build();
     TermLogger::init(level, config, TerminalMode::Stdout, ColorChoice::Auto).unwrap();
     // lint_main(args)?;
-    wasm_main()?;
+    wasm_main(args.config)?;
     Ok(())
 }
 
