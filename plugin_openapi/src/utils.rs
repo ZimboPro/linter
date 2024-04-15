@@ -1,14 +1,14 @@
 use extism_pdk::*;
-use merge_yaml_hash::MergeYamlHash;
 use openapiv3::{Operation, PathItem};
 use serde::{Deserialize, Serialize};
+use yaml_hash::YamlHash;
 
 pub fn merge(files: Vec<String>) -> String {
-    let mut hash = MergeYamlHash::new();
+    let hash = YamlHash::new();
     info!("Merging OpenAPI documents");
     for file in files {
         info!("Merging file {:?}", file);
-        hash.merge(&file);
+        let _ = hash.merge_file(&file);
     }
 
     hash.to_string()
