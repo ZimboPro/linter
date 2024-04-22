@@ -1,74 +1,9 @@
-use std::{collections::HashMap, path::PathBuf};
-
 use extism::{convert::Json, Manifest, Plugin, Wasm};
 use serde::{Deserialize, Serialize};
 use simplelog::{error, warn};
+use std::{collections::HashMap, path::PathBuf};
 
-#[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq, Eq)]
-struct CliPluginConfig {
-    /// Path to the plugin.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    path: Option<String>,
-    /// Url to the plugin.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    url: Option<String>,
-    /// Directory containing the files to be linted. Defaults to the current directory.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    directory: Option<PathBuf>,
-    /// Paths to the lints files.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    lints_paths: Option<Vec<PathBuf>>,
-    /// Urls to the lints files.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    urls: Option<Vec<String>>,
-}
-
-enum PluginLocation {
-    Path(PathBuf),
-    Url(String),
-}
-
-struct PluginData {
-    plugin: PluginLocation,
-    directory: PathBuf,
-    lints_paths: Vec<PathBuf>,
-    urls: Vec<String>,
-}
-
-impl PluginData {
-    fn new(
-        plugin: PluginLocation,
-        directory: PathBuf,
-        lints_paths: Vec<PathBuf>,
-        urls: Vec<String>,
-    ) -> Self {
-        Self {
-            plugin,
-            directory,
-            lints_paths,
-            urls,
-        }
-    }
-
-    fn from_cli_plugin_config(cli_plugin_config: CliPluginConfig) -> anyhow::Result<Self> {
-        let plugin = if let Some(path) = cli_plugin_config.path {
-            PluginLocation::Path(PathBuf::from(path))
-        } else if let Some(url) = cli_plugin_config.url {
-            PluginLocation::Url(url)
-        } else {
-            return Err(anyhow::anyhow!("No plugin path or url provided"));
-        };
-
-        Ok(Self::new(
-            plugin,
-            cli_plugin_config
-                .directory
-                .unwrap_or(std::env::current_dir().expect("Failed to get current dir")),
-            cli_plugin_config.lints_paths.unwrap_or_default(),
-            cli_plugin_config.urls.unwrap_or_default(),
-        ))
-    }
-}
+use crate::plugin_config::{CliPluginConfig, PluginData, PluginLocation};
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 struct LintConfig {
@@ -76,13 +11,13 @@ struct LintConfig {
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
-struct LintData {
-    name: String,
+pub struct LintData {
+    pub name: String,
     lint: String,
     #[serde(default)]
     args: HashMap<String, serde_json::Value>,
-    warning: Option<String>,
-    error: Option<String>,
+    pub warning: Option<String>,
+    pub error: Option<String>,
     compared_lint: Option<String>,
     compared_args: Option<HashMap<String, serde_json::Value>>,
 }
@@ -101,7 +36,7 @@ impl LintData {
         })
     }
 
-    fn convert_to_plugin_lint_with_compared(
+    pub fn convert_to_plugin_lint_with_compared(
         &self,
     ) -> Option<(plugin_core::Lint, plugin_core::Lint)> {
         Some((
@@ -118,7 +53,7 @@ impl LintData {
             plugin_core::Lint {
                 name: self.name.clone(),
                 lint: self.compared_lint.clone()?,
-                args: self.compared_args.clone()?,
+                args: self.compared_args.clone().unwrap_or_default(),
                 output: if self.warning.is_some() {
                     plugin_core::LintResult::Warning(self.warning.clone().unwrap())
                 } else {
@@ -149,6 +84,17 @@ impl LintData {
         }
         Ok(())
     }
+
+    pub fn validate_compared_lints(&self) -> anyhow::Result<()> {
+        self.validate()?;
+        if self.compared_lint.is_none() {
+            return Err(anyhow::anyhow!(
+                "The compared lint for {} doesn't exist",
+                self.name
+            ));
+        }
+        Ok(())
+    }
 }
 
 pub fn wasm_main(config: PathBuf) -> anyhow::Result<()> {
@@ -169,7 +115,7 @@ pub fn wasm_main(config: PathBuf) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn merge_lints(plugin: &PluginData) -> anyhow::Result<Vec<LintData>> {
+pub fn merge_lints(plugin: &PluginData) -> anyhow::Result<Vec<LintData>> {
     let mut lints = vec![];
     for lints_path in &plugin.lints_paths {
         let lints_file = std::fs::read_to_string(lints_path)?;

@@ -1,10 +1,13 @@
 use std::path::PathBuf;
 
 use anyhow::Ok;
-use clap::Parser;
+use clap::{Args, Command, Parser};
 
+mod compare_main;
+mod plugin_config;
 mod wasm_main;
 
+use compare_main::compare_lints_main;
 use figment::{
     providers::{Env, Format, Serialized, Yaml},
     Figment,
@@ -31,13 +34,16 @@ pub struct CliArgs {
     pub verbose: bool,
 }
 
-// enum LinterCommands {
-//     Lint(CLI),
-//     Test,
-//     Output,
-// }
+#[derive(Debug, Parser)]
+enum LinterCommands {
+    Lint(CLI),
+    Compare(CLI),
+    // TODO
+    // Test,
+    // Output,
+}
 
-#[derive(Debug, Default, Parser, Serialize, Deserialize)]
+#[derive(Debug, Default, Args, Serialize, Deserialize)]
 #[command(version, about, long_about = None)]
 pub struct CLI {
     /// Verbose mode
@@ -105,20 +111,17 @@ impl FinalCli {
 // }
 
 // Based off article https://steezeburger.com/2023/03/rust-hierarchical-configuration/
-fn figment_layered_impl() -> anyhow::Result<CLI> {
-    let conf: CLI = Figment::new()
-        .merge(Yaml::file("linter.yaml"))
-        .merge(Env::prefixed("LINTER_"))
-        .merge(Serialized::defaults(CLI::parse()))
-        .extract()?;
-    Ok(conf)
-}
+// fn figment_layered_impl() -> anyhow::Result<CLI> {
+//     let conf: CLI = Figment::new()
+//         .merge(Yaml::file("linter.yaml"))
+//         .merge(Env::prefixed("LINTER_"))
+//         .merge(Serialized::defaults(CLI::parse()))
+//         .extract()?;
+//     Ok(conf)
+// }
 
-fn main() -> anyhow::Result<()> {
-    let args = figment_layered_impl()?;
-    let args = FinalCli::new(args)?;
-    args.validate()?;
-    let level = if args.verbose {
+fn init_logger(verbose: bool) -> anyhow::Result<()> {
+    let level = if verbose {
         LevelFilter::Debug
     } else {
         LevelFilter::Info
@@ -132,8 +135,31 @@ fn main() -> anyhow::Result<()> {
         .set_time_level(LevelFilter::Off)
         .build();
     TermLogger::init(level, config, TerminalMode::Stdout, ColorChoice::Auto).unwrap();
+    Ok(())
+}
+
+fn main() -> anyhow::Result<()> {
+    // let args = figment_layered_impl()?;
+    // let args = FinalCli::new(args)?;
+    // args.validate()?;
+    let args = LinterCommands::parse();
+    match args {
+        LinterCommands::Lint(cli) => {
+            init_logger(cli.verbose)?;
+            let args = FinalCli::new(cli)?;
+            args.validate()?;
+            wasm_main(args.config)?;
+        }
+        LinterCommands::Compare(cli) => {
+            init_logger(cli.verbose)?;
+            let args = FinalCli::new(cli)?;
+            args.validate()?;
+            compare_lints_main(args.config)?;
+        } // LinterCommands::Test => todo!(),
+          // LinterCommands::Output => todo!(),
+    }
+
     // lint_main(args)?;
-    wasm_main(args.config)?;
     Ok(())
 }
 
