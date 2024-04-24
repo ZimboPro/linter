@@ -1,6 +1,6 @@
 [package]
 name = "linter"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 repository = "https://github.com/ZimboPro/hcl-openapi-lints"
 description = "A linter for HCL and OpenAPI files"
