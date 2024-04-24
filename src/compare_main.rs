@@ -21,6 +21,7 @@ pub fn compare_lints_main(config: PathBuf) -> anyhow::Result<()> {
     let mut main_plugin = Plugin::new(manifest, [], true).unwrap();
     let res = main_plugin.call::<Option<&str>, ()>("new", None);
     if res.is_err() {
+        eprintln!("Failed to initialize plugin: {:?}", res.err().unwrap());
         return Err(anyhow::anyhow!("Failed to initialize plugin"));
     }
     let plugin_data = PluginData::from_cli_compare_plugin_config(args.secondary)?;
@@ -32,6 +33,7 @@ pub fn compare_lints_main(config: PathBuf) -> anyhow::Result<()> {
     let mut secondary_plugin = Plugin::new(manifest, [], true).unwrap();
     let res = secondary_plugin.call::<Option<&str>, ()>("new", None);
     if res.is_err() {
+        eprintln!("Failed to initialize plugin: {:?}", res.err().unwrap());
         return Err(anyhow::anyhow!("Failed to initialize plugin"));
     }
     for lint in &lints {

@@ -109,6 +109,7 @@ pub fn wasm_main(config: PathBuf) -> anyhow::Result<()> {
     let mut plugin = Plugin::new(manifest, [], true).unwrap();
     let res = plugin.call::<Option<&str>, ()>("new", None);
     if res.is_err() {
+        eprintln!("Failed to initialize plugin: {:?}", res.err().unwrap());
         return Err(anyhow::anyhow!("Failed to initialize plugin"));
     }
     run_lints(lints, plugin)?;

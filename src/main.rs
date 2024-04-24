@@ -1,17 +1,14 @@
 use std::path::PathBuf;
 
 use anyhow::Ok;
-use clap::{Args, Command, Parser};
+use clap::{Args, Parser};
 
 mod compare_main;
 mod plugin_config;
 mod wasm_main;
 
 use compare_main::compare_lints_main;
-use figment::{
-    providers::{Env, Format, Serialized, Yaml},
-    Figment,
-};
+
 use serde::{Deserialize, Serialize};
 use simplelog::{Color, ColorChoice, ConfigBuilder, Level, LevelFilter, TermLogger, TerminalMode};
 
