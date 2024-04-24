@@ -48,7 +48,8 @@ static ADAPTER: OnceLock<Arc<OpenApiAdapter>> = OnceLock::new();
 
 #[plugin_fn]
 pub fn new() -> FnResult<()> {
-    ADAPTER.get_or_init(|| Arc::new(OpenApiAdapter::new()));
+    let s = OpenApiAdapter::new()?;
+    ADAPTER.get_or_init(|| Arc::new(s));
 
     Ok(())
 }

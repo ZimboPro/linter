@@ -1,6 +1,6 @@
 use std::sync::{Arc, OnceLock};
 
-use plugin_core::{find_files, open_file};
+use plugin_core::{find_files, open_file, PluginErrors};
 use trustfall::{
     provider::{
         resolve_coercion_using_schema, resolve_property_with, AsVertex, ContextIterator,
@@ -31,7 +31,7 @@ impl OpenApiAdapter {
         SCHEMA.get_or_init(|| Schema::parse(Self::SCHEMA_TEXT).expect("not a valid schema"))
     }
 
-    pub fn new() -> Self {
+    pub fn new() -> Result<Self, PluginErrors> {
         let path = std::path::Path::new("contents");
         let openapi = if path.is_dir() {
             let mut files = find_files(path, "yaml".as_ref());
@@ -40,7 +40,7 @@ impl OpenApiAdapter {
             for file in files {
                 files_content.push(open_file(file));
             }
-            let merged_content = merge(files_content);
+            let merged_content = merge(files_content)?;
             serde_yaml::from_str(&merged_content).unwrap()
         } else if path.is_file() {
             let file = std::fs::File::open(path).expect("failed to open file");
@@ -50,7 +50,7 @@ impl OpenApiAdapter {
             panic!("Path: {:?} is not a file or directory", path)
         };
 
-        Self { openapi }
+        Ok(Self { openapi })
     }
 
     fn info(&self) -> Vertex {

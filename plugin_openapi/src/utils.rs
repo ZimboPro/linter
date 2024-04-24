@@ -1,17 +1,18 @@
 use extism_pdk::*;
 use openapiv3::{Operation, PathItem};
+use plugin_core::PluginErrors;
 use serde::{Deserialize, Serialize};
 use yaml_hash::YamlHash;
 
-pub fn merge(files: Vec<String>) -> String {
-    let hash = YamlHash::new();
-    info!("Merging OpenAPI documents");
-    for file in files {
-        info!("Merging file {:?}", file);
-        let _ = hash.merge_file(&file);
+pub fn merge(files_contents: Vec<String>) -> Result<String, PluginErrors> {
+    let mut hash = YamlHash::new();
+    for file in files_contents {
+        hash = hash
+            .merge_str(&file)
+            .map_err(|x| PluginErrors::PluginError(x.to_string()))?;
     }
 
-    hash.to_string()
+    Ok(hash.to_string())
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
