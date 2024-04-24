@@ -17,11 +17,15 @@ eula = false
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-anyhow = "1.0.80"
-clap = { version = "4.5.4", features = ["derive"] }
+anyhow = "1.0.81"
+clap = { version = "4.5.2", features = ["derive"] }
+extism = "1.2.0"
+figment = { version = "0.10.15", features = ["env", "yaml"] }
 hcl-rs = "0.16.8"
 merge-yaml-hash = { git = "https://github.com/ZimboPro/merge-yaml-hash" }
 openapiv3 = "2.0.0"
+plugin_core = { path = "./plugin_core" }
+reqwest = { version = "0.12.3", features = ["json", "blocking"] }
 serde = { version = "1.0.197", features = ["derive"] }
 serde_json = "1.0.115"
 serde_yaml = "0.9.34"
@@ -41,6 +45,10 @@ debug = 0
 [profile.release]
 lto = true
 codegen-units = 1
+panic = "abort"
+
+[workspace]
+members = ["plugin_core", "plugin_openapi", "plugin_terraform"]
 # panic = "abort"
 
 # Config for 'cargo dist'

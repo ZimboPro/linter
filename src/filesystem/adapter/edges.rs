@@ -8,7 +8,7 @@ use super::vertex::Vertex;
 pub(super) fn resolve_folder_edge<'a, V: AsVertex<Vertex> + 'a>(
     contexts: ContextIterator<'a, V>,
     edge_name: &str,
-    parameters: &EdgeParameters,
+    _parameters: &EdgeParameters,
     resolve_info: &ResolveEdgeInfo,
 ) -> ContextOutcomeIterator<'a, V, VertexIterator<'a, Vertex>> {
     match edge_name {
@@ -39,7 +39,7 @@ mod folder {
                 .expect("conversion failed, vertex was not a Folder");
             let folder_contents = folder
                 .read_dir()
-                .expect(format!("Failed to read dir: {}", folder.to_str().unwrap()).as_str());
+                .unwrap_or_else(|_| panic!("Failed to read dir: {}", folder.to_str().unwrap()));
             let iter = folder_contents
                 .into_iter()
                 .map(|s| Vertex::Path(s.unwrap().path()));

@@ -1,0 +1,79 @@
+lints:
+  - name: All API endpoints should have tags
+    error: "All API endpoints should have tags"
+    lint: |
+      {
+        Paths {
+          path @output
+            operations {
+              tags @filter(op: "is_null")
+            }
+        }
+      }
+  - name: All API endpoints should have timeouts
+    error: "All API endpoints should have timeouts"
+    lint: |
+      {
+        Paths {
+          path @output
+            operations {
+              xAmazonApigatewayIntegration {
+                timeoutInMillis @filter(op: "is_null")
+              }
+            }
+        }
+      }
+  - name: All API endpoints should have timeouts greater than 5000
+    error: "All API endpoints should have timeouts greater than 5000"
+    lint: |
+      {
+        Paths {
+          path @output
+            operations {
+              xAmazonApigatewayIntegration {
+                timeoutInMillis @filter(op: "<", value: ["$timeout"]) @output
+              }
+            }
+        }
+      }
+    args:
+      timeout: 5000
+  - name: No DELETE method
+    lint: |
+      {
+        Paths {
+          path @output
+          operations {
+            method @filter(op: "=", value: ["$method"]) @output
+          }
+        }
+      }
+    error: "No DELETE method allowed"
+    args:
+      method: DELETE
+  - name: No PUT method
+    lint: |
+      {
+        Paths {
+          path @output
+          operations {
+            method @filter(op: "=", value: ["$method"]) @output
+          }
+        }
+      }
+    error: "No PUT method allowed"
+    args:
+      method: PUT
+  - name: No PATCH method
+    lint: |
+      {
+        Paths {
+          path @output
+          operations {
+            method @filter(op: "=", value: ["$method"]) @output
+          }
+        }
+      }
+    error: "No PATCH method allowed"
+    args:
+      method: PATCH

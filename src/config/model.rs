@@ -47,6 +47,15 @@ impl Lint {
         }
         Ok(())
     }
+
+    pub fn convert_to_oai_lint(&self) -> Option<plugin_core::Lint> {
+        self.api.as_ref().map(|api| plugin_core::Lint {
+            name: self.name.clone(),
+            lint: api.clone(),
+            args: self.oa_args.clone(),
+            output: plugin_core::LintResult::Error(self.error.clone()),
+        })
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -1,9 +1,6 @@
-use std::{
-    path::PathBuf,
-    sync::{Arc, OnceLock},
-};
+use std::sync::{Arc, OnceLock};
 
-use simplelog::debug;
+use plugin_core::{find_files, open_file, PluginErrors};
 use trustfall::{
     provider::{
         resolve_coercion_using_schema, resolve_property_with, AsVertex, ContextIterator,
@@ -14,9 +11,10 @@ use trustfall::{
 };
 
 use super::{
-    utils::{find_files, merge, open_file, Route},
+    utils::{merge, Route},
     vertex::Vertex,
 };
+use extism_pdk::*;
 
 static SCHEMA: OnceLock<Schema> = OnceLock::new();
 
@@ -33,15 +31,16 @@ impl OpenApiAdapter {
         SCHEMA.get_or_init(|| Schema::parse(Self::SCHEMA_TEXT).expect("not a valid schema"))
     }
 
-    pub fn new(path: PathBuf) -> Self {
+    pub fn new() -> Result<Self, PluginErrors> {
+        let path = std::path::Path::new("contents");
         let openapi = if path.is_dir() {
-            let mut files = find_files(&path, "yaml".as_ref());
-            files.extend(find_files(&path, "yml".as_ref()));
+            let mut files = find_files(path, "yaml".as_ref());
+            files.extend(find_files(path, "yml".as_ref()));
             let mut files_content = Vec::new();
             for file in files {
                 files_content.push(open_file(file));
             }
-            let merged_content = merge(files_content);
+            let merged_content = merge(files_content)?;
             serde_yaml::from_str(&merged_content).unwrap()
         } else if path.is_file() {
             let file = std::fs::File::open(path).expect("failed to open file");
@@ -51,7 +50,7 @@ impl OpenApiAdapter {
             panic!("Path: {:?} is not a file or directory", path)
         };
 
-        Self { openapi }
+        Ok(Self { openapi })
     }
 
     fn info(&self) -> Vertex {
@@ -72,17 +71,22 @@ impl OpenApiAdapter {
     }
 
     fn paths<'a>(&self) -> VertexIterator<'a, Vertex> {
-        let iter = self.openapi.paths.clone().into_iter().map(|x| {
+        let iter = self.openapi.paths.clone().into_iter().filter_map(|x| {
             let mut route: Route = x.1.into();
             route.path = x.0.clone().to_string();
-            debug!("Route: {:?}", route);
-            Vertex::Path(route)
+            info!("Route: {:?}", route);
+            Some(Vertex::Path(route))
         });
         Box::new(iter)
     }
 
     fn tags<'a>(&self) -> VertexIterator<'a, Vertex> {
-        let iter = self.openapi.tags.clone().into_iter().map(Vertex::Tag);
+        let iter = self
+            .openapi
+            .tags
+            .clone()
+            .into_iter()
+            .filter_map(|x| Some(Vertex::Tag(x)));
         Box::new(iter)
         // Vertex::Tags(self.openapi.tags.clone())
     }

@@ -17,6 +17,12 @@ static SCHEMA: OnceLock<Schema> = OnceLock::new();
 #[derive(Debug)]
 pub struct FileSystemAdapter {}
 
+impl Default for FileSystemAdapter {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl FileSystemAdapter {
     pub const SCHEMA_TEXT: &'static str = include_str!("./schema.graphql");
 
