@@ -70,11 +70,10 @@ impl Operator {
                     match serde_json::from_value::<AmazonApigatewayIntegration>(value.clone()) {
                         Ok(mut s) => {
                             s.extract_supplementary_data();
-                            info!("AWS extension: {:#?}", s);
                             Some(s)
                         }
                         Err(e) => {
-                            eprintln!("Failed to deserialize to AWS extension: {e} {value}");
+                            error!("Failed to deserialize to AWS extension: {e} {value}");
                             None
                         }
                     }

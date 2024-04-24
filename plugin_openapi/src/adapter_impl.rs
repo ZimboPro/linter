@@ -74,7 +74,6 @@ impl OpenApiAdapter {
         let iter = self.openapi.paths.clone().into_iter().filter_map(|x| {
             let mut route: Route = x.1.into();
             route.path = x.0.clone().to_string();
-            info!("Route: {:?}", route);
             Some(Vertex::Path(route))
         });
         Box::new(iter)
