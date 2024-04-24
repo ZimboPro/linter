@@ -1430,7 +1430,6 @@ dependencies = [
  "extism",
  "figment",
  "hcl-rs",
- "merge-yaml-hash",
  "openapiv3",
  "plugin_core",
  "reqwest",
@@ -1440,6 +1439,7 @@ dependencies = [
  "sha256",
  "simplelog",
  "trustfall",
+ "yaml-hash",
  "yaml-rust2 0.8.0",
 ]
 
@@ -1530,15 +1530,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "488016bfae457b036d996092f6cb448677611ce4449e970ceaf42695203f218a"
 dependencies = [
  "autocfg",
-]
-
-[[package]]
-name = "merge-yaml-hash"
-version = "0.3.0"
-source = "git+https://github.com/ZimboPro/merge-yaml-hash#220f3c090b69216622bdbcef22bd4078368035fd"
-dependencies = [
- "hashlink",
- "yaml-rust2 0.8.0",
 ]
 
 [[package]]

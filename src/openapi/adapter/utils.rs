@@ -1,8 +1,8 @@
-use merge_yaml_hash::MergeYamlHash;
 use openapiv3::{Operation, PathItem};
 use serde::{Deserialize, Serialize};
 use simplelog::debug;
 use std::{ffi::OsStr, io::Read, path::PathBuf};
+use yaml_hash::YamlHash;
 
 /// Finds all the files with the extension in the directory recursively
 pub fn find_files(path: &std::path::Path, extension: &OsStr) -> Vec<PathBuf> {
@@ -30,11 +30,11 @@ pub fn open_file(filename: PathBuf) -> String {
 }
 
 pub fn merge(files: Vec<String>) -> String {
-    let mut hash = MergeYamlHash::new();
+    let mut hash = YamlHash::new();
     debug!("Merging OpenAPI documents");
     for file in files {
         debug!("Merging file {:?}", file);
-        hash.merge(&file);
+        hash = hash.merge_str(&file).unwrap();
     }
 
     hash.to_string()
