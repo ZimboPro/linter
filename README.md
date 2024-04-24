@@ -2,6 +2,10 @@
 
 A tool to lint OpenAPI and/or Terraform files and pickup any errors according to the rules specified
 
+## Demo
+
+![Demo](Demo.gif)
+
 ## Usage
 
 `linter -a [api yaml file or folder] -t [terraform folder] -c [config/lint file]`
