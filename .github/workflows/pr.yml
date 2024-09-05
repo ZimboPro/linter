@@ -1,22 +1,19 @@
-name: Build
+on: [pull_request]
 
-on:
-  pull_request:
-    branches:
-      - master
+name: Pull request checks
 
 jobs:
-  build:
+  check:
+    name: Rust project
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - name: Set up Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
+      - uses: Swatinem/rust-cache@v2
 
-      - name: Build
-        run: cargo build
+      - name: Cargo check
+        run: cargo check
+
+#      - name: Run tests
+ #       run: cargo test
