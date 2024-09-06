@@ -1402,12 +1402,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "linked-hash-map"
-version = "0.5.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0717cef1bc8b636c6e1c1bbdefc09e6322da8a9321966e8928ef80d20f7f770f"
-
-[[package]]
 name = "linter"
 version = "0.2.0"
 dependencies = [
@@ -1426,7 +1420,7 @@ dependencies = [
  "simplelog",
  "trustfall",
  "yaml-hash",
- "yaml-rust2 0.8.1",
+ "yaml-rust2",
 ]
 
 [[package]]
@@ -3758,22 +3752,12 @@ dependencies = [
 
 [[package]]
 name = "yaml-hash"
-version = "0.3.0"
+version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "70066285f36f11a80f46b27584a00a71de3707a8bb027919eea4014272b25fb2"
+checksum = "353020b00b766cfd053c79a1ac82abe49773dc1d0ea13e782b6e534108823afb"
 dependencies = [
  "anyhow",
- "linked-hash-map",
- "yaml-rust2 0.5.0",
-]
-
-[[package]]
-name = "yaml-rust2"
-version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ee28fa5797c86e9be3bf58e14a2c3851babd801fe050c9b698d37998964cdf99"
-dependencies = [
- "linked-hash-map",
+ "yaml-rust2",
 ]
 
 [[package]]
