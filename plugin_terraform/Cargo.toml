@@ -6,10 +6,10 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-anyhow = "1.0.86"
-extism-pdk = "1.1.0"
-hcl-rs = "0.18.0"
-serde = { version = "1.0.209", features = ["derive"] }
-serde_json = "1.0.127"
-trustfall = "0.7.1"
-plugin_core = { path = "../plugin_core" }
+anyhow = { workspace = true }
+extism-pdk = { workspace = true }
+hcl-rs = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+trustfall = { workspace = true }
+plugin_core = { workspace = true }
