@@ -14,7 +14,6 @@ use super::{
     utils::{merge, Route},
     vertex::Vertex,
 };
-use extism_pdk::*;
 
 static SCHEMA: OnceLock<Schema> = OnceLock::new();
 
