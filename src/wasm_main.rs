@@ -105,7 +105,14 @@ pub fn wasm_main(config: PathBuf) -> anyhow::Result<()> {
         PluginLocation::Path(path) => Wasm::file(path),
         PluginLocation::Url(url) => Wasm::url(url),
     };
-    let manifest = Manifest::new([wasm]).with_allowed_path(plugin_data.directory, "contents");
+    let manifest = Manifest::new([wasm]).with_allowed_path(
+        plugin_data
+            .directory
+            .into_os_string()
+            .into_string()
+            .unwrap(),
+        "contents",
+    );
     let mut plugin = Plugin::new(manifest, [], true).unwrap();
     let res = plugin.call::<Option<&str>, ()>("new", None);
     if res.is_err() {
